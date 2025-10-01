@@ -3,12 +3,11 @@ from django.db import models
 from .manager import UserManager
 from django.apps import apps
 
+from uuid import uuid4
 
-class University(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    
-    def __str__(self):
-        return self.name
+from university.models import University
+
+
     
 
 class User(AbstractBaseUser, PermissionsMixin):

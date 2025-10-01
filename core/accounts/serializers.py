@@ -1,12 +1,11 @@
 
 
-from .models import University,User
+from .models import User
+from university.models import University
 from rest_framework import serializers
 
-class UniversitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = University
-        fields = ['id', 'name']
+
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     university = serializers.PrimaryKeyRelatedField(queryset=University.objects.all())
@@ -18,15 +17,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ('first_name', 'email', 'password', 'profile_picture', 'phone_number', 'date_of_birth', 'university')
 
     def create(self, validated_data):
-        import random, string
+        import random
         first_name = validated_data.get('first_name', '')
-        # Generate a random 5-character alphanumeric string
-        rand_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=5))
-        base_username = f"{first_name.lower()}{rand_str}"
+        # Generate a random 6-digit integer
+        rand_int = random.randint(100000, 999999)
+        base_username = f"{first_name.lower()}_{str(rand_int)}"
         # Ensure username is unique
         while User.objects.filter(username=base_username).exists():
-            rand_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=5))
-            base_username = f"{first_name.lower()}{rand_str}"
+            rand_int = random.randint(100000, 999999)
+            base_username = f"{first_name.lower()}_{str(rand_int)}"
         user = User(
             username=base_username,
             email=validated_data['email'],
