@@ -39,20 +39,7 @@ class ContributionNotes(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class ContributionsComments(models.Model):
-    """
-    Model for storing comments of contributions.
-    """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    comment = models.TextField(null=True, blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        if self.user and self.user.username:
-            return self.user.username
-        return f"Comment {self.id}"
 
 
 class ContributionRatings(models.Model):
@@ -92,8 +79,7 @@ class Contributions(models.Model):
     department = models.ForeignKey('university.Department', related_name='contributions', on_delete=models.PROTECT, null=True, blank=True, db_index=True)
     videos= models.ManyToManyField('ContributionVideos', related_name='contributions', blank=True)
     notes = models.ManyToManyField('ContributionNotes', related_name='contributions', blank=True)
-    comments = models.ManyToManyField('ContributionsComments', related_name='contributions', blank=True)
-    ratings = models.ManyToManyField('ContributionRatings', related_name='contributions_ratings', blank=True)
+    ratings = models.DecimalField(max_digits=3, decimal_places=2 ,default=0,null=True, blank=True, db_index=True)
     active = models.BooleanField(default=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -110,3 +96,20 @@ class Contributions(models.Model):
             models.Index(fields=['related_University', 'user']),
         ]
 
+
+
+class ContributionsComments(models.Model):
+    """
+    Model for storing comments of contributions.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    contribution = models.ForeignKey('Contributions', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    comment = models.TextField(null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        if self.user and self.user.username:
+            return self.user.username
+        return f"Comment {self.id}"

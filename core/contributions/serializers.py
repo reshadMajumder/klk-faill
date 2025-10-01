@@ -1,10 +1,13 @@
 
 from rest_framework import serializers
-from .models import Contributions, ContributionVideos, ContributionNotes, ContributionsComments, ContributionRatings
+from .models import ContributionTags, Contributions, ContributionVideos, ContributionNotes, ContributionsComments, ContributionRatings
 from university.models import University,Department
-from university.serializers import UniversitySerializer
 
-
+class UniversitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = University
+        fields = ['id', 'name']
+        read_only_fields = ['id']
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
@@ -24,13 +27,11 @@ class ContributionNotesSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
-class ContributionsCommentsSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-
+class ContributionsTagsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ContributionsComments
-        fields = ['id', 'comment', 'user', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+        model = ContributionTags
+        fields = ['id', 'name']
+        read_only_fields = ['id']
 
 
 class ContributionRatingsSerializer(serializers.ModelSerializer):
@@ -49,19 +50,29 @@ class BasicContributionsSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Contributions
-        fields = ['id', 'title', 'price' ,'course_code','thumbnail_image','department', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'price' ,'course_code','thumbnail_image','department','ratings', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class ContributionsSerializer(serializers.ModelSerializer):
     related_University = UniversitySerializer(read_only=True)
     department = DepartmentSerializer(read_only=True)
-    videos = ContributionVideosSerializer(many=True, read_only=True)
-    notes = ContributionNotesSerializer(many=True, read_only=True)
-    comments = ContributionsCommentsSerializer(many=True, read_only=True)
-    contribution_ratings = ContributionRatingsSerializer(many=True, read_only=True)
+    tags = ContributionsTagsSerializer(many=True)
+    videos = ContributionVideosSerializer(many=True)
+    notes = ContributionNotesSerializer(many=True)
 
     class Meta:
         model = Contributions
-        fields = ['id', 'title', 'description', 'price', 'tags', 'related_University', 'department', 'videos', 'notes', 'comments', 'contribution_ratings', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'description', 'price', 'tags', 'related_University', 'department', 'videos', 'notes', 'ratings', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+
+class ContributionsCommentsSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    contribution = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = ContributionsComments
+        fields = ['id', 'comment', 'user', 'contribution', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'contribution', 'created_at', 'updated_at']
