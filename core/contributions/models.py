@@ -1,7 +1,7 @@
 from django.db import models
 from uuid import uuid4
 from django.conf import settings
-from accounts.models import University
+from university.models import University,Department
 
 
 
@@ -14,7 +14,7 @@ class ContributionVideos(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=255, null=True, blank=True)
-    video_file = models.FileField(upload_to='contribution_videos/', null=True, blank=True)
+    video_file = models.URLField(max_length=500, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -34,7 +34,7 @@ class ContributionNotes(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=255, null=True, blank=True)
-    note_file = models.FileField(upload_to='contribution_notes/', null=True, blank=True)
+    note_file = models.URLField(max_length=500, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -76,7 +76,7 @@ class Contributions(models.Model):
     price = models.DecimalField(max_digits=10, default=0, decimal_places=2, null=True, blank=True, db_index=True)
     tags = models.ManyToManyField('ContributionTags', related_name='contributions')
     related_University = models.ForeignKey(University, related_name='contributions', on_delete=models.PROTECT, null=True, blank=True, db_index=True)
-    department = models.ForeignKey('university.Department', related_name='contributions', on_delete=models.PROTECT, null=True, blank=True, db_index=True)
+    department = models.ForeignKey(Department, related_name='contributions', on_delete=models.PROTECT, null=True, blank=True, db_index=True)
     videos= models.ManyToManyField('ContributionVideos', related_name='contributions', blank=True)
     notes = models.ManyToManyField('ContributionNotes', related_name='contributions', blank=True)
     ratings = models.DecimalField(max_digits=3, decimal_places=2 ,default=0,null=True, blank=True, db_index=True)
