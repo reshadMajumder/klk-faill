@@ -2,12 +2,12 @@ from django.db import models
 
 from uuid import uuid4
 from django.conf import settings
-from contributions.models import ContributionVideos
+from contributions.models import ContributionVideos,Contributions
 # Create your models here.
 
 
 
-class ContributionVideoView(models.Model):
+class ContributionVideoViewCount(models.Model):
     """
     Model for tracking views of each video by users.
     """
@@ -34,11 +34,13 @@ class Enrollement(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='enrollements')
-    contribution = models.ForeignKey('contributions.Contributions', on_delete=models.CASCADE, related_name='enrollements')
+    contribution = models.ForeignKey(Contributions, on_delete=models.CASCADE, related_name='enrollements')
     enrolled_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ['user', 'contribution']
+
+    
 
 
     def __str__(self):
