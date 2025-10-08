@@ -162,7 +162,8 @@ REST_FRAMEWORK = {
         'user': '100/minute',  # Authenticated users: 100 requests per minute
         'login': '100/minute',  # Login attempts: 5 per minute
         'register': '100/hour',  # Registration attempts: 3 per hour
-    }
+    },
+    
 }
 
 

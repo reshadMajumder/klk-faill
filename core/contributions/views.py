@@ -3,7 +3,10 @@ from django.shortcuts import render
 # Create your views here.
 
 
+import rest_framework
 from rest_framework.views import APIView
+
+from rest_framework import generics
 from rest_framework.response import Response    
 from rest_framework import status, permissions
 from .models import Contributions, ContributionVideos, ContributionNotes, ContributionsComments, ContributionRatings
@@ -15,6 +18,8 @@ from .serializers import (BasicContributionsSerializer, ContributionsSerializer,
 class ContributionsListView(APIView):
     """
     API endpoint to list all contributions.
+    If contribution_id is provided, retrieve the specific contribution.
+    if not provided, list all contributions in short info.
     """
     permission_classes = [permissions.AllowAny]
 
@@ -34,7 +39,7 @@ class ContributionsListView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     
-class CreateContributionsView(APIView):
+class ContributionsView(APIView):
     """
     API endpoint to create a new contribution.
     """
@@ -63,12 +68,6 @@ class CreateContributionsView(APIView):
             return Response({"message": "Contribution updated successfully", "data": data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class DeleteContributionsView(APIView):
-    """
-    API endpoint to delete a contribution.
-    """
-    permission_classes = [permissions.IsAuthenticated]
-
     def delete(self, request, contribution_id):
         user = request.user
         try:
@@ -80,3 +79,39 @@ class DeleteContributionsView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+
+
+class PersonalizedContributionsView(APIView):
+    """
+    fetch contributions filtered by user university
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        try:
+            user_university = user.university
+            if not user_university:
+                return Response({"error": "User does not have an associated university."}, status=status.HTTP_400_BAD_REQUEST)
+
+            contributions = Contributions.objects.filter(related_University=user_university).select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
+            serializer = BasicContributionsSerializer(contributions, many=True)
+            return Response({"message": "Personalized contributions retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class UserContributionsView(APIView):
+    """
+    fetch contributions filtered by user
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        try:
+            contributions = Contributions.objects.filter(user=user).select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
+            serializer = BasicContributionsSerializer(contributions, many=True)
+            return Response({"message": "User contributions retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
