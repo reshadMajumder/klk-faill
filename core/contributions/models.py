@@ -1,3 +1,6 @@
+# ...existing code...
+
+
 from django.db import models
 from uuid import uuid4
 from django.conf import settings
@@ -113,3 +116,4 @@ class ContributionsComments(models.Model):
         if self.user and self.user.username:
             return self.user.username
         return f"Comment {self.id}"
+    

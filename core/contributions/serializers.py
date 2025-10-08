@@ -13,6 +13,13 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
         read_only_fields = ['id']
 
+
+class ContributionVideosListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContributionVideos
+        fields = ['id', 'title']
+        read_only_fields = ['id']
+
 class ContributionVideosSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContributionVideos
@@ -25,6 +32,11 @@ class ContributionNotesSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'note_file', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+class ContributionNotesListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContributionNotes
+        fields = ['id', 'title', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 class ContributionsTagsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -153,8 +165,8 @@ class ContributionsSerializer(serializers.ModelSerializer):
     related_University = UniversitySerializer()
     department = DepartmentSerializer()
     tags = ContributionsTagsSerializer(many=True, required=False)
-    videos = ContributionVideosSerializer(many=True, required=False)
-    notes = ContributionNotesSerializer(many=True, required=False)
+    videos = ContributionVideosListSerializer(many=True, required=False)
+    notes = ContributionNotesListSerializer(many=True, required=False)
     user = serializers.StringRelatedField()
 
 

@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from .models import Contributions, ContributionVideos, ContributionNotes, ContributionsComments, ContributionRatings
 from .serializers import (BasicContributionsSerializer, ContributionsSerializer, ContributionVideosSerializer, 
-                          ContributionNotesSerializer, ContributionsCommentsSerializer, ContributionRatingsSerializer, BasicContributionsSerializer, CreateContributionsSerializer)  
+                          ContributionNotesSerializer, ContributionsCommentsSerializer, ContributionRatingsSerializer, BasicContributionsSerializer, CreateContributionsSerializer,ContributionNotesListSerializer)  
 
 
 
@@ -44,6 +44,7 @@ class ContributionsView(APIView):
     API endpoint to create a new contribution.
     """
     permission_classes = [permissions.IsAuthenticated]
+    
 
     def post(self, request):
         user = request.user
@@ -115,3 +116,6 @@ class UserContributionsView(APIView):
             return Response({"message": "User contributions retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
