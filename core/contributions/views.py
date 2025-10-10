@@ -22,9 +22,22 @@ class ContributionsListView(ListAPIView):
     """
     API endpoint to list all contributions with pagination.
     """
+
     permission_classes = [permissions.AllowAny]
-    queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
     serializer_class = BasicContributionsSerializer
+
+    def get_queryset(self):
+        queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
+        university_id = self.request.query_params.get('university')
+        department_id = self.request.query_params.get('department')
+        course_code = self.request.query_params.get('course_code')
+        if university_id:
+            queryset = queryset.filter(related_University__id=university_id)
+        if department_id:
+            queryset = queryset.filter(department__id=department_id)
+        if course_code:
+            queryset = queryset.filter(course_code__iexact=course_code)
+        return queryset
 
 
 class ContributionDetailView(RetrieveAPIView):
@@ -99,20 +112,20 @@ class PersonalizedContributionsView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 
-class UserContributionsView(APIView):
+
+from rest_framework.generics import ListAPIView
+
+class UserContributionsView(ListAPIView):
     """
-    fetch contributions filtered by user
+    Paginated list of contributions filtered by user's university
     """
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = BasicContributionsSerializer
 
-    def get(self, request):
-        user = request.user
-        try:
-            contributions = Contributions.objects.filter(user=user).select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
-            serializer = BasicContributionsSerializer(contributions, many=True)
-            return Response({"message": "User contributions retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def get_queryset(self):
+        user = self.request.user
+        university = user.university
+        return Contributions.objects.filter(related_University=university).select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
         
 
 

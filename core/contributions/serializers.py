@@ -57,10 +57,11 @@ class ContributionRatingsSerializer(serializers.ModelSerializer):
 
 class BasicContributionsSerializer(serializers.ModelSerializer):
     department = DepartmentSerializer(read_only=True)
+    related_University = UniversitySerializer(read_only=True)
     
     class Meta:
         model = Contributions
-        fields = ['id', 'title', 'price' ,'course_code','thumbnail_image','department','ratings', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'price' ,'course_code','thumbnail_image','department','related_University','ratings', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def validate(self, attrs):
