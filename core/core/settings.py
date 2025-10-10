@@ -172,7 +172,8 @@ REST_FRAMEWORK = {
         'login': '100/minute',  # Login attempts: 5 per minute
         'register': '100/hour',  # Registration attempts: 3 per hour
     },
-    
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 5,
 }
 
 

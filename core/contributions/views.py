@@ -15,28 +15,25 @@ from .serializers import (BasicContributionsSerializer, ContributionsSerializer,
 
 
 
-class ContributionsListView(APIView):
+
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+
+class ContributionsListView(ListAPIView):
     """
-    API endpoint to list all contributions.
-    If contribution_id is provided, retrieve the specific contribution.
-    if not provided, list all contributions in short info.
+    API endpoint to list all contributions with pagination.
     """
     permission_classes = [permissions.AllowAny]
+    queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
+    serializer_class = BasicContributionsSerializer
 
-    def get(self, request, contribution_id=None):
-        try:
-            if contribution_id:
-                contribution = Contributions.objects.get(id=contribution_id)
-                serializer = ContributionsSerializer(contribution)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                contributions = Contributions.objects.all().select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
-                serializer = BasicContributionsSerializer(contributions, many=True)
-                return Response({"message": "Contributions retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
-        except Contributions.DoesNotExist:
-            return Response({"error": "Contribution not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ContributionDetailView(RetrieveAPIView):
+    """
+    API endpoint to retrieve a single contribution by id.
+    """
+    permission_classes = [permissions.AllowAny]
+    queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
+    serializer_class = ContributionsSerializer
 
     
 class ContributionsView(APIView):
