@@ -1,3 +1,9 @@
+# Custom serializer for user profile
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'profile_picture', 'phone_number', 'date_of_birth', 'university', 'is_email_verified', 'date_joined', 'is_active')
+        read_only_fields = ('username', 'email', 'date_joined', 'is_email_verified', 'is_active')
 
 
 from .models import User
