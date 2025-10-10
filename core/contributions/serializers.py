@@ -87,7 +87,7 @@ class CreateContributionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributions
-        fields = ['id','user', 'title', 'description', 'price', 'tags','thumbnail_image','related_University', 'department', 'videos', 'notes', 'ratings', 'created_at', 'updated_at']
+        fields = ['id','user', 'title', 'description','course_code', 'price', 'tags','thumbnail_image','related_University', 'department', 'videos', 'notes', 'ratings', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at', 'user', 'ratings']
 
 
@@ -173,7 +173,7 @@ class ContributionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributions
-        fields = ['id','user', 'title', 'description', 'price', 'tags', 'related_University', 'department', 'thumbnail_image','videos', 'notes', 'ratings', 'created_at', 'updated_at']
+        fields = ['id','user', 'title', 'description', 'price','course_code', 'tags', 'related_University', 'department', 'thumbnail_image','videos', 'notes', 'ratings', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
