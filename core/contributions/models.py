@@ -75,7 +75,7 @@ class Contributions(models.Model):
     title = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     course_code = models.CharField(max_length=50, null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
-    thumbnail_image = models.ImageField(upload_to='thumbnail_images/', null=True, blank=True)
+    thumbnail_image = models.URLField(max_length=500, null=True, blank=True)
     price = models.DecimalField(max_digits=10, default=0, decimal_places=2, null=True, blank=True, db_index=True)
     tags = models.ManyToManyField('ContributionTags', related_name='contributions')
     related_University = models.ForeignKey(University, related_name='contributions', on_delete=models.PROTECT, null=True, blank=True, db_index=True)
