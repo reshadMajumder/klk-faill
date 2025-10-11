@@ -220,3 +220,55 @@ class ContributionsCommentsSerializer(serializers.ModelSerializer):
         model = ContributionsComments
         fields = ['id', 'comment', 'user', 'contribution', 'created_at', 'updated_at']
         read_only_fields = ['id', 'user', 'contribution', 'created_at', 'updated_at']
+
+
+
+
+class UserContributionsSerializer(serializers.ModelSerializer):
+    related_University = UniversitySerializer()
+    department = DepartmentSerializer()
+    tags = ContributionsTagsSerializer(many=True, required=False)
+    videos = ContributionVideosSerializer(many=True, required=False)
+    notes = ContributionNotesSerializer(many=True, required=False)
+    user = serializers.StringRelatedField()
+
+
+    class Meta:
+        model = Contributions
+        fields = ['id','user', 'title', 'description', 'price','course_code', 'tags', 'related_University', 'department', 'thumbnail_image','videos', 'notes', 'ratings', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+    def create(self, validated_data):
+        tags_data = validated_data.pop('tags', [])
+        videos_data = validated_data.pop('videos', [])
+        notes_data = validated_data.pop('notes', [])
+        
+        contribution = Contributions.objects.create(**validated_data)
+        
+        for tag_data in tags_data:
+            tag, created = ContributionTags.objects.get_or_create(**tag_data)
+            contribution.tags.add(tag)
+        
+        for video_data in videos_data:
+            video = ContributionVideos.objects.create(**video_data)
+            contribution.videos.add(video)
+        
+        for note_data in notes_data:
+            note = ContributionNotes.objects.create(**note_data)
+            contribution.notes.add(note)
+
+        related_department = validated_data.get('department')
+        if related_department:
+            department_obj, created = Department.objects.get_or_create(name=related_department['name'])
+            contribution.department = department_obj
+            contribution.save()
+
+        related_university = validated_data.get('related_University')
+        if related_university:
+            university_obj = University.objects.filter(name=related_university).first()
+            if university_obj:
+                contribution.related_University = university_obj
+                contribution.save()
+        return contribution
+

@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from .models import Contributions, ContributionVideos, ContributionNotes, ContributionsComments, ContributionRatings
 from .serializers import (BasicContributionsSerializer, ContributionsSerializer, ContributionVideosSerializer, 
-                          ContributionNotesSerializer, ContributionsCommentsSerializer, ContributionRatingsSerializer, BasicContributionsSerializer, CreateContributionsSerializer,ContributionNotesListSerializer)  
+                          ContributionNotesSerializer, ContributionsCommentsSerializer, ContributionRatingsSerializer, BasicContributionsSerializer, CreateContributionsSerializer,UserContributionsSerializer)  
 
 
 
@@ -124,8 +124,20 @@ class UserContributionsView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        university = user.university
-        return Contributions.objects.filter(related_University=university).select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
+        return Contributions.objects.filter(user=user).select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
         
 
+class UserContributionDetailView(APIView):
+    """
+    API endpoint to retrieve a single contribution by id.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request, contribution_id):
+        user = request.user
+        try:
+            contribution = Contributions.objects.get(id=contribution_id, user=user)
+            serializer = UserContributionsSerializer(contribution)
+            return Response({"message": "Contribution retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+        except Contributions.DoesNotExist:
+            return Response({"error": "Contribution not found or you do not have permission to view this contribution."}, status=status.HTTP_404_NOT_FOUND)
 
