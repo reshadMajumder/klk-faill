@@ -1,0 +1,52 @@
+{
+  "placeholderImages": [
+    {
+      "id": "avatar1",
+      "description": "User avatar for Alex Johnson",
+      "imageUrl": "https://picsum.photos/seed/avatar1/200/200",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "avatar2",
+      "description": "User avatar for Maria Garcia",
+      "imageUrl": "https://picsum.photos/seed/avatar2/200/200",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "avatar3",
+      "description": "User avatar for Chen Wei",
+      "imageUrl": "https://picsum.photos/seed/avatar3/200/200",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "thumb1",
+      "description": "Thumbnail for Calculus course",
+      "imageUrl": "https://picsum.photos/seed/thumb1/600/400",
+      "imageHint": "math equations"
+    },
+    {
+      "id": "thumb2",
+      "description": "Thumbnail for Organic Chemistry course",
+      "imageUrl": "https://picsum.photos/seed/thumb2/600/400",
+      "imageHint": "science laboratory"
+    },
+    {
+      "id": "thumb3",
+      "description": "Thumbnail for Macroeconomics course",
+      "imageUrl": "https://picsum.photos/seed/thumb3/600/400",
+      "imageHint": "city skyline"
+    },
+    {
+      "id": "thumb4",
+      "description": "Thumbnail for Python Data Structures course",
+      "imageUrl": "https://picsum.photos/seed/thumb4/600/400",
+      "imageHint": "abstract code"
+    },
+    {
+      "id": "profileHeader",
+      "description": "Generic header for profile page",
+      "imageUrl": "https://picsum.photos/seed/phead/1200/300",
+      "imageHint": "abstract pattern"
+    }
+  ]
+}
