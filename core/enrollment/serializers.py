@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
-from .models import Enrollement, ContributionVideoViewCount
-from contributions.serializers import ContributionsSerializer
+from .models import Enrollement, ContributionVideoViewCount,Contributions
+from contributions.serializers import ContributionsSerializer,UniversitySerializer,DepartmentSerializer,ContributionsTagsSerializer,ContributionVideosSerializer,ContributionNotesSerializer
 from contributions.models import ContributionVideos
 
 class EnrollmentSerializer(serializers.ModelSerializer):
@@ -21,6 +21,21 @@ class EnrollmentSerializer(serializers.ModelSerializer):
         return Enrollement.objects.create(user=user, **validated_data)
 
 
+class EnrollmentContributionViewSerializer(serializers.ModelSerializer):
+
+    related_University = UniversitySerializer()
+    department = DepartmentSerializer()
+    tags = ContributionsTagsSerializer(many=True, required=False)
+    videos = ContributionVideosSerializer(many=True, required=False)
+    notes = ContributionNotesSerializer(many=True, required=False)
+    user = serializers.StringRelatedField()
+
+
+    class Meta:
+        model = Contributions
+        fields = ['id','user', 'title', 'description', 'price','course_code', 'tags', 'related_University', 'department', 'thumbnail_image','videos', 'notes', 'ratings', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
 
 class GetEnrollmentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -29,7 +44,12 @@ class GetEnrollmentSerializer(serializers.ModelSerializer):
         model = Enrollement
         fields = '__all__'
 
-
+class GetEnrollmentDetailSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    contribution=EnrollmentContributionViewSerializer()
+    class Meta:
+        model = Enrollement
+        fields = '__all__'
 class VideoViewCountSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContributionVideoViewCount

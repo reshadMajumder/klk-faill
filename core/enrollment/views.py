@@ -5,7 +5,7 @@ from rest_framework import status, permissions
 
 from contributions.models import ContributionVideos
 from .models import ContributionVideoViewCount,Enrollement
-from .serializers import EnrollmentSerializer,GetEnrollmentSerializer,ContributionVideoSerializer
+from .serializers import EnrollmentSerializer,GetEnrollmentSerializer,ContributionVideoSerializer,GetEnrollmentDetailSerializer
 
 
 
@@ -34,7 +34,7 @@ class EnrollmentView(APIView):
         try:
             if enrollment_id:
                 enrollment = Enrollement.objects.get(id=enrollment_id)
-                serializer = GetEnrollmentSerializer(enrollment)
+                serializer = GetEnrollmentDetailSerializer(enrollment)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 enrollments = Enrollement.objects.filter(user=user).select_related('user', 'contribution').prefetch_related('contribution__videos', 'contribution__notes')
