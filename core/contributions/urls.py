@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from .views import ContributionsListView, ContributionDetailView, ContributionsView, PersonalizedContributionsView, UserContributionsView,UserContributionDetailView,ContributionVideoCreateView
+from .views import ContributionsListView, ContributionDetailView, ContributionsView, PersonalizedContributionsView, UserContributionsView,UserContributionDetailView,ContributionVideoCreateView,ContributionNotesCreateView
 
 
 
@@ -13,6 +13,10 @@ urlpatterns = [
     path("contributions/<uuid:contribution_id>/delete/", ContributionsView.as_view(), name="delete-contribution"),
     path("contributions/<uuid:contribution_id>/videos/", ContributionVideoCreateView.as_view(), name="contribution-video-create"),
     path("contributions/<uuid:contribution_id>/videos/<uuid:video_id>/", ContributionVideoCreateView.as_view(), name="contribution-video-create"),
+
+    path("contributions/<uuid:contribution_id>/notes/", ContributionNotesCreateView.as_view(), name="contribution-video-create"),
+    path("contributions/<uuid:contribution_id>/notes/<uuid:note_id>/", ContributionNotesCreateView.as_view(), name="contribution-video-create"),
+
 
     path("contributions/personalized/", PersonalizedContributionsView.as_view(), name="personalized-contributions"),
     path("contributions/user/", UserContributionsView.as_view(), name="user-contributions"),

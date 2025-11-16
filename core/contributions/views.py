@@ -141,6 +141,48 @@ class ContributionVideoCreateView(APIView):
         return Response({"message": "Video deleted"}, status=204)
 
 
+
+
+class ContributionNotesCreateView(APIView):
+    """
+    Create, update, and delete notes for a contribution.
+    """
+
+    def post(self, request, contribution_id):
+        contribution = get_object_or_404(Contributions, id=contribution_id)
+
+        serializer = ContributionNotesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(contribution=contribution)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+    def put(self, request, contribution_id, note_id):
+        note = get_object_or_404(
+            ContributionNotes,
+            id=note_id,
+            contribution_id=contribution_id
+        )
+
+        serializer = ContributionNotesSerializer(note, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=200)
+
+    def delete(self, request, contribution_id, note_id):
+        video = get_object_or_404(
+            ContributionNotes,
+            id=note_id,
+            contribution_id=contribution_id
+        )
+        video.delete()
+        return Response({"message": "Video deleted"}, status=204)
+
+
+
+
 class PersonalizedContributionsView(APIView):
     """
     fetch contributions filtered by user university
