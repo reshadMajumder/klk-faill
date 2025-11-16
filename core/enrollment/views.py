@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 
-from contributions.models import ContributionVideos
+from contributions.models import ContributionVideos,ContributionNotes
 from .models import ContributionVideoViewCount,Enrollement
 from .serializers import EnrollmentSerializer,GetEnrollmentSerializer,GetEnrollmentDetailSerializer
 from django.db import IntegrityError
@@ -56,6 +56,12 @@ class ContributionVideoWatch(APIView):
         video = get_object_or_404(ContributionVideos, id=video_id)
         contribution = video.contribution
 
+# --- ENROLLMENT CHECK ---
+        if not contribution.is_enrolled(user):
+            return Response(
+                {"error": "You must enroll in this contribution to watch the video."},
+                status=403
+            )
         # Count unique view
         try:
             ContributionVideoViewCount.objects.create(
@@ -80,6 +86,30 @@ class ContributionVideoWatch(APIView):
                 "title": video.title,
                 "video_url": video.video_file,
                 "total_views": video.total_views,
+            },
+            status=200
+        )
+    
+
+class EnrolledContributionNotesView(APIView):
+    """
+    Return a note file URL only if the user is enrolled
+    in the contribution.
+    """
+    def get(self, request, note_id):
+        user = request.user
+        note = get_object_or_404(ContributionNotes, id=note_id)
+        contribution = note.contribution
+
+        # --- ENROLLMENT CHECK ---
+        if not contribution.is_enrolled(user):
+            return Response({"error": "You must enroll in this contribution to access notes."},status=403)
+
+        return Response(
+            {
+                "note_id": str(note.id),
+                "title": note.title,
+                "note_url": note.note_file,
             },
             status=200
         )

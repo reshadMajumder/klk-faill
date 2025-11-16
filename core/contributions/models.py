@@ -24,6 +24,7 @@ class ContributionVideos(models.Model):
 
 
 
+
 class ContributionNotes(models.Model):
     """
     Model for storing notes of contributions.
@@ -83,6 +84,12 @@ class Contributions(models.Model):
         if self.title:
             return self.title
         return f"Contribution {self.id}"
+    
+    def is_enrolled(self, user):
+        if not user.is_authenticated:
+            return False
+        return self.enrollements.filter(user=user).exists()
+
 
     class Meta:
         verbose_name_plural = "Contributions"
