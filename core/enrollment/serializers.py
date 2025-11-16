@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 from .models import Enrollement, ContributionVideoViewCount,Contributions
-from contributions.serializers import ContributionsSerializer,UniversitySerializer,DepartmentSerializer,ContributionsTagsSerializer,ContributionVideosSerializer,ContributionNotesSerializer
+from contributions.serializers import ContributionsSerializer,UniversitySerializer,DepartmentSerializer,ContributionVideosSerializer,ContributionNotesSerializer
 from contributions.models import ContributionVideos
 
 class EnrollmentSerializer(serializers.ModelSerializer):
@@ -25,7 +25,6 @@ class EnrollmentContributionViewSerializer(serializers.ModelSerializer):
 
     related_University = UniversitySerializer()
     department = DepartmentSerializer()
-    tags = ContributionsTagsSerializer(many=True, required=False)
     videos = ContributionVideosSerializer(many=True, required=False)
     notes = ContributionNotesSerializer(many=True, required=False)
     user = serializers.StringRelatedField()

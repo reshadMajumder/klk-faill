@@ -10,13 +10,13 @@ from rest_framework import generics
 from rest_framework.response import Response    
 from rest_framework import status, permissions
 from .models import Contributions, ContributionVideos, ContributionNotes, ContributionsComments, ContributionRatings
-from .serializers import (BasicContributionsSerializer, ContributionsSerializer, ContributionVideosSerializer, 
+from .serializers import (BasicContributionsSerializer, ContributionsSerializer, ContributionVideosSerializer, ContributionDetailSerializer,
                           ContributionNotesSerializer, ContributionsCommentsSerializer, ContributionRatingsSerializer, BasicContributionsSerializer, CreateContributionsSerializer,UserContributionsSerializer)  
 
-
-
-
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from django.shortcuts import get_object_or_404
+
+
 
 class ContributionsListView(ListAPIView):
     """
@@ -27,7 +27,7 @@ class ContributionsListView(ListAPIView):
     serializer_class = BasicContributionsSerializer
 
     def get_queryset(self):
-        queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
+        queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related ('comments', 'contribution_ratings')
         university_id = self.request.query_params.get('university')
         department_id = self.request.query_params.get('department')
         course_code = self.request.query_params.get('course_code')
@@ -40,18 +40,30 @@ class ContributionsListView(ListAPIView):
         return queryset
 
 
+
 class ContributionDetailView(RetrieveAPIView):
     """
-    API endpoint to retrieve a single contribution by id.
+    get the single contribution with details and also video
+    notes and video will only contain title
     """
     permission_classes = [permissions.AllowAny]
-    queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
-    serializer_class = ContributionsSerializer
+
+    serializer_class = ContributionDetailSerializer
+    queryset = Contributions.objects.prefetch_related(
+        'contributionVideos',
+        'contributionNotes'
+    ).select_related(
+        'user',
+        'related_University',
+        'department'
+    )
+    lookup_field = 'id'
+
 
     
 class ContributionsView(APIView):
     """
-    API endpoint to create a new contribution.
+    API endpoint to create update delete a new contribution.
     """
     permission_classes = [permissions.IsAuthenticated]
     
@@ -91,6 +103,53 @@ class ContributionsView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
+class ContributionVideoCreateView(APIView):
+    """
+    Create, update, and delete videos for a contribution.
+    """
+
+    def post(self, request, contribution_id):
+        contribution = get_object_or_404(Contributions, id=contribution_id)
+
+        serializer = ContributionVideosSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(contribution=contribution)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+    def put(self, request, contribution_id):
+        """
+        Update an existing video.
+        You MUST send video_id in the request.
+        """
+        video_id = request.data.get("video_id")
+        if not video_id:
+            return Response({"error": "video_id is required"}, status=400)
+
+        video = get_object_or_404(ContributionVideos, id=video_id, contribution_id=contribution_id)
+
+        serializer = ContributionVideosSerializer(video, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=200)
+
+
+    def delete(self, request, contribution_id):
+        """
+        Delete an existing video.
+        You MUST send video_id in the request.
+        """
+        video_id = request.data.get("video_id")
+        if not video_id:
+            return Response({"error": "video_id is required"}, status=400)
+
+        video = get_object_or_404(ContributionVideos, id=video_id, contribution_id=contribution_id)
+        video.delete()
+
+        return Response({"message": "Video deleted"}, status=204)
+
 
 class PersonalizedContributionsView(APIView):
     """
@@ -113,7 +172,6 @@ class PersonalizedContributionsView(APIView):
         
 
 
-from rest_framework.generics import ListAPIView
 
 class UserContributionsView(ListAPIView):
     """
@@ -125,7 +183,7 @@ class UserContributionsView(ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Contributions.objects.filter(user=user).select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
-        
+       
 
 class UserContributionDetailView(APIView):
     """
@@ -141,3 +199,52 @@ class UserContributionDetailView(APIView):
         except Contributions.DoesNotExist:
             return Response({"error": "Contribution not found or you do not have permission to view this contribution."}, status=status.HTTP_404_NOT_FOUND)
 
+
+
+class ContributionVideoView(APIView):
+
+    """
+    add contribution in a specific contribution
+    delete update a video 
+    get all video titles of a contribuion
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+
+    def post(self, request,contribution_id):
+        user = request.user
+        if not contribution_id:
+            return Response({"message": "Contribution id needed"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = ContributionVideosSerializer(data=request.data)
+        if serializer.is_valid():
+            contributionVideo = serializer.save(user=user)
+            data = ContributionVideosSerializer(contributionVideo).data
+            return Response({"message": "Contribution video created successfully", "data": data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, contribution_id):
+        user = request.user
+        try:
+            contribution = ContributionVideos.objects.get(id=contribution_id, user=user)
+        except Contributions.DoesNotExist:
+            return Response({"error": "Contribution video not found or you do not have permission to edit this contribution video."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ContributionVideosSerializer(contribution, data=request.data, partial=True)
+        if serializer.is_valid():
+            updated_contribution = serializer.save()
+            data = ContributionVideosSerializer(updated_contribution).data
+            return Response({"message": "Contribution video updated successfully", "data": data}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, contribution_id):
+        user = request.user
+        try:
+            contributionVideo = ContributionVideos.objects.get(id=contribution_id, user=user)
+            contributionVideo.delete()
+            return Response({"message": "Contribution video deleted successfully"}, status=status.HTTP_200_OK)
+        except Contributions.DoesNotExist:
+            return Response({"error": "Contribution video not found or you do not have permission to delete this contribution video."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
