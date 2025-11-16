@@ -184,33 +184,18 @@ class ContributionsCommentsSerializer(serializers.ModelSerializer):
 class UserContributionsSerializer(serializers.ModelSerializer):
     related_University = UniversitySerializer()
     department = DepartmentSerializer()
+    contributionVideos = ContributionVideosSerializer(many=True)
+    contributionNotes = ContributionNotesSerializer(many=True)
+    comments=ContributionsCommentsSerializer(many=True)
     
     user = serializers.StringRelatedField()
 
 
     class Meta:
         model = Contributions
-        fields = ['id','user', 'title', 'description', 'price','course_code', 'related_University', 'department', 'thumbnail_image', 'ratings', 'created_at', 'updated_at']
+        fields = ['id','user', 'title', 'description', 'price','course_code', 'contributionVideos','related_University','contributionNotes','comments', 'department', 'thumbnail_image', 'ratings', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
-    def create(self, validated_data):
-        
-        
-        contribution = Contributions.objects.create(**validated_data)
-        
-        
-        related_department = validated_data.get('department')
-        if related_department:
-            department_obj, created = Department.objects.get_or_create(name=related_department['name'])
-            contribution.department = department_obj
-            contribution.save()
-
-        related_university = validated_data.get('related_University')
-        if related_university:
-            university_obj = University.objects.filter(name=related_university).first()
-            if university_obj:
-                contribution.related_University = university_obj
-                contribution.save()
-        return contribution
+    
 
