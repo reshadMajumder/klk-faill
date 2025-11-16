@@ -13,13 +13,11 @@ from cloudinary.models import CloudinaryField
 
 
 class ContributionVideos(models.Model):
-    """
-    Model for storing contribution videos.
-    """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=255, null=True, blank=True)
     video_file = models.URLField(max_length=500, null=True, blank=True)
-    contribution=models.ForeignKey('Contributions', on_delete=models.CASCADE, related_name='contributionVideos', null=True, blank=True)
+    contribution = models.ForeignKey('Contributions',on_delete=models.CASCADE,related_name='contributionVideos',null=True,blank=True)
+    total_views = models.IntegerField(default=0)   
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -77,6 +75,7 @@ class Contributions(models.Model):
     department = models.ForeignKey(Department, related_name='contributions', on_delete=models.PROTECT, null=True, blank=True, db_index=True)  
     ratings = models.DecimalField(max_digits=3, decimal_places=2 ,default=0,null=True, blank=True, db_index=True)
     active = models.BooleanField(default=False, db_index=True)
+    total_views=models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 

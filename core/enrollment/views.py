@@ -6,7 +6,8 @@ from rest_framework import status, permissions
 from contributions.models import ContributionVideos
 from .models import ContributionVideoViewCount,Enrollement
 from .serializers import EnrollmentSerializer,GetEnrollmentSerializer,ContributionVideoSerializer,GetEnrollmentDetailSerializer
-
+from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
 
 
 
@@ -46,26 +47,40 @@ class EnrollmentView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class EnrolledVideoWatch(APIView):
-    """
-    get the single video with the file url and also add to watch checklist count
 
+class ContributionVideoWatch(APIView):
     """
-    def get(self,request,video_id=None):
+    Track a unique view for a video and return the video file URL.
+    """
+    def get(self, request, video_id):
         user = request.user
+        video = get_object_or_404(ContributionVideos, id=video_id)
+        contribution = video.contribution
+
+        # Count unique view
         try:
-            if video_id:
-                video = ContributionVideos.objects.get(id=video_id)
+            ContributionVideoViewCount.objects.create(
+                video=video,
+                user=user
+            )
+            # If created → increment counters
+            video.total_views = video.total_views + 1
+            video.save(update_fields=["total_views"])
 
-                # Record the view for this user and video
-                ContributionVideoViewCount.objects.get_or_create(video=video, user=user)
+            contribution.total_views = contribution.total_views + 1
+            contribution.save(update_fields=["total_views"])
 
-                serializer = ContributionVideoSerializer(video)
-                return Response({"message": "video retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
-        except ContributionVideos.DoesNotExist:
-            return Response({"error": "ContributionVideos not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except IntegrityError:
+            # Already viewed → don’t increment
+            pass
 
-
-
+        # Return the actual video URL
+        return Response(
+            {
+                "video_id": str(video.id),
+                "title": video.title,
+                "video_url": video.video_file,
+                "total_views": video.total_views,
+            },
+            status=200
+        )

@@ -17,14 +17,14 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class ContributionVideosListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContributionVideos
-        fields = ['id', 'title']
-        read_only_fields = ['id']
+        fields = ['id', 'title','total_views']
+        read_only_fields = ['id','total_views']
 
 class ContributionVideosSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContributionVideos
-        fields = ['id', 'title', 'video_file', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'video_file', 'created_at','total_views', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'total_views','updated_at']
 
 class ContributionNotesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -58,8 +58,8 @@ class BasicContributionsSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Contributions
-        fields = ['id', 'title', 'price' ,'course_code','thumbnail_image','department','related_University','ratings', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'price' ,'course_code','thumbnail_image','department','related_University','ratings','total_views', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at','total_views', 'updated_at']
 
     def validate(self, attrs):
 
@@ -83,7 +83,7 @@ class ContributionDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributions
-        fields = ['id','user','title','course_code','description','thumbnail_image','price','related_University','department','ratings','active','created_at','contributionVideos','contributionNotes']
+        fields = ['id','user','title','course_code','description','thumbnail_image','price','related_University','department','ratings','total_views','active','created_at','contributionVideos','contributionNotes']
 
 
 
@@ -97,7 +97,7 @@ class CreateContributionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contributions
         fields = ['id','user', 'title', 'description','course_code', 'price','thumbnail_image','related_University', 'department', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
+        read_only_fields = ['id', 'created_at','total_views', 'updated_at', 'user']
 
 
     def create(self, validated_data):
@@ -143,8 +143,8 @@ class ContributionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributions
-        fields = ['id','user', 'title', 'description', 'price','course_code',  'related_University', 'department', 'thumbnail_image', 'ratings', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id','user', 'title', 'description', 'price','course_code',  'related_University', 'department', 'thumbnail_image', 'ratings','total_views', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at','total_views', 'updated_at']
 
 
     def create(self, validated_data):
@@ -193,8 +193,8 @@ class UserContributionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributions
-        fields = ['id','user', 'title', 'description', 'price','course_code', 'contributionVideos','related_University','contributionNotes','comments', 'department', 'thumbnail_image', 'ratings', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id','user', 'title', 'description', 'price','course_code', 'contributionVideos','related_University','contributionNotes','comments', 'department', 'thumbnail_image', 'ratings','total_views', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at','total_views', 'updated_at']
 
 
     
