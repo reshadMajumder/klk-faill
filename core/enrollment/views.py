@@ -5,7 +5,7 @@ from rest_framework import status, permissions
 
 from contributions.models import ContributionVideos
 from .models import ContributionVideoViewCount,Enrollement
-from .serializers import EnrollmentSerializer,GetEnrollmentSerializer,ContributionVideoSerializer,GetEnrollmentDetailSerializer
+from .serializers import EnrollmentSerializer,GetEnrollmentSerializer,GetEnrollmentDetailSerializer
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
@@ -21,7 +21,6 @@ class EnrollmentView(APIView):
 
     def post(self, request):
 
-        user = request.user
         serializer = EnrollmentSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             enrollment = serializer.save()
@@ -38,7 +37,7 @@ class EnrollmentView(APIView):
                 serializer = GetEnrollmentDetailSerializer(enrollment)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                enrollments = Enrollement.objects.filter(user=user).select_related('user', 'contribution').prefetch_related('contribution__videos', 'contribution__notes')
+                enrollments = Enrollement.objects.filter(user=user).select_related('user', 'contribution')
                 serializer = GetEnrollmentSerializer(enrollments, many=True)
                 return Response({"message": "Enrollments retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
         except Enrollement.DoesNotExist:
