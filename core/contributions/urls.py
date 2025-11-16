@@ -12,6 +12,7 @@ urlpatterns = [
     path("contributions/<uuid:contribution_id>/edit/", ContributionsView.as_view(), name="edit-contribution"),
     path("contributions/<uuid:contribution_id>/delete/", ContributionsView.as_view(), name="delete-contribution"),
     path("contributions/<uuid:contribution_id>/videos/", ContributionVideoCreateView.as_view(), name="contribution-video-create"),
+    path("contributions/<uuid:contribution_id>/videos/<uuid:video_id>/", ContributionVideoCreateView.as_view(), name="contribution-video-create"),
 
     path("contributions/personalized/", PersonalizedContributionsView.as_view(), name="personalized-contributions"),
     path("contributions/user/", UserContributionsView.as_view(), name="user-contributions"),

@@ -118,16 +118,12 @@ class ContributionVideoCreateView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-    def put(self, request, contribution_id):
-        """
-        Update an existing video.
-        You MUST send video_id in the request.
-        """
-        video_id = request.data.get("video_id")
-        if not video_id:
-            return Response({"error": "video_id is required"}, status=400)
-
-        video = get_object_or_404(ContributionVideos, id=video_id, contribution_id=contribution_id)
+    def put(self, request, contribution_id, video_id):
+        video = get_object_or_404(
+            ContributionVideos,
+            id=video_id,
+            contribution_id=contribution_id
+        )
 
         serializer = ContributionVideosSerializer(video, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -135,19 +131,13 @@ class ContributionVideoCreateView(APIView):
 
         return Response(serializer.data, status=200)
 
-
-    def delete(self, request, contribution_id):
-        """
-        Delete an existing video.
-        You MUST send video_id in the request.
-        """
-        video_id = request.data.get("video_id")
-        if not video_id:
-            return Response({"error": "video_id is required"}, status=400)
-
-        video = get_object_or_404(ContributionVideos, id=video_id, contribution_id=contribution_id)
+    def delete(self, request, contribution_id, video_id):
+        video = get_object_or_404(
+            ContributionVideos,
+            id=video_id,
+            contribution_id=contribution_id
+        )
         video.delete()
-
         return Response({"message": "Video deleted"}, status=204)
 
 
