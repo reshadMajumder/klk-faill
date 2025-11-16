@@ -196,7 +196,7 @@ class PersonalizedContributionsView(APIView):
             if not user_university:
                 return Response({"error": "User does not have an associated university."}, status=status.HTTP_400_BAD_REQUEST)
 
-            contributions = Contributions.objects.filter(related_University=user_university).select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
+            contributions = Contributions.objects.filter(related_University=user_university).select_related('related_University', 'department').prefetch_related('comments', 'contribution_ratings')
             serializer = BasicContributionsSerializer(contributions, many=True)
             return Response({"message": "Personalized contributions retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
         except Exception as e:
@@ -214,7 +214,7 @@ class UserContributionsView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Contributions.objects.filter(user=user).select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
+        return Contributions.objects.filter(user=user).select_related('related_University', 'department').prefetch_related( 'comments', 'contribution_ratings')
        
 
 class UserContributionDetailView(APIView):
@@ -231,52 +231,3 @@ class UserContributionDetailView(APIView):
         except Contributions.DoesNotExist:
             return Response({"error": "Contribution not found or you do not have permission to view this contribution."}, status=status.HTTP_404_NOT_FOUND)
 
-
-
-class ContributionVideoView(APIView):
-
-    """
-    add contribution in a specific contribution
-    delete update a video 
-    get all video titles of a contribuion
-    """
-    permission_classes = [permissions.IsAuthenticated]
-    
-
-    def post(self, request,contribution_id):
-        user = request.user
-        if not contribution_id:
-            return Response({"message": "Contribution id needed"}, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = ContributionVideosSerializer(data=request.data)
-        if serializer.is_valid():
-            contributionVideo = serializer.save(user=user)
-            data = ContributionVideosSerializer(contributionVideo).data
-            return Response({"message": "Contribution video created successfully", "data": data}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def put(self, request, contribution_id):
-        user = request.user
-        try:
-            contribution = ContributionVideos.objects.get(id=contribution_id, user=user)
-        except Contributions.DoesNotExist:
-            return Response({"error": "Contribution video not found or you do not have permission to edit this contribution video."}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = ContributionVideosSerializer(contribution, data=request.data, partial=True)
-        if serializer.is_valid():
-            updated_contribution = serializer.save()
-            data = ContributionVideosSerializer(updated_contribution).data
-            return Response({"message": "Contribution video updated successfully", "data": data}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self, request, contribution_id):
-        user = request.user
-        try:
-            contributionVideo = ContributionVideos.objects.get(id=contribution_id, user=user)
-            contributionVideo.delete()
-            return Response({"message": "Contribution video deleted successfully"}, status=status.HTTP_200_OK)
-        except Contributions.DoesNotExist:
-            return Response({"error": "Contribution video not found or you do not have permission to delete this contribution video."}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
