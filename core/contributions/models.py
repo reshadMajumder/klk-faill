@@ -5,6 +5,7 @@ from django.db import models
 from uuid import uuid4
 from django.conf import settings
 from university.models import University,Department
+from cloudinary.models import CloudinaryField
 
 
 
@@ -12,22 +13,15 @@ from university.models import University,Department
 
 
 class ContributionVideos(models.Model):
-    """
-    Model for storing contribution videos.
-    """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=255, null=True, blank=True)
     video_file = models.URLField(max_length=500, null=True, blank=True)
+    contribution = models.ForeignKey('Contributions',on_delete=models.CASCADE,related_name='contributionVideos',null=True,blank=True)
+    total_views = models.IntegerField(default=0)   
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class ContributionTags(models.Model):
-    """
-    Model for storing tags of contributions.
-    """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.CharField(max_length=255, null=True, blank=True)
 
 
 
@@ -37,6 +31,7 @@ class ContributionNotes(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=255, null=True, blank=True)
+    contribution=models.ForeignKey('Contributions', on_delete=models.CASCADE, related_name='contributionNotes', null=True, blank=True)
     note_file = models.URLField(max_length=500, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -75,15 +70,13 @@ class Contributions(models.Model):
     title = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     course_code = models.CharField(max_length=50, null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
-    thumbnail_image = models.URLField(max_length=500, null=True, blank=True)
+    thumbnail_image = CloudinaryField('thumbnail_image', blank=True, null=True)
     price = models.DecimalField(max_digits=10, default=0, decimal_places=2, null=True, blank=True, db_index=True)
-    tags = models.ManyToManyField('ContributionTags', related_name='contributions')
     related_University = models.ForeignKey(University, related_name='contributions', on_delete=models.PROTECT, null=True, blank=True, db_index=True)
-    department = models.ForeignKey(Department, related_name='contributions', on_delete=models.PROTECT, null=True, blank=True, db_index=True)
-    videos= models.ManyToManyField('ContributionVideos', related_name='contributions', blank=True)
-    notes = models.ManyToManyField('ContributionNotes', related_name='contributions', blank=True)
+    department = models.ForeignKey(Department, related_name='contributions', on_delete=models.PROTECT, null=True, blank=True, db_index=True)  
     ratings = models.DecimalField(max_digits=3, decimal_places=2 ,default=0,null=True, blank=True, db_index=True)
-    active = models.BooleanField(default=True, db_index=True)
+    active = models.BooleanField(default=False, db_index=True)
+    total_views=models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -91,6 +84,12 @@ class Contributions(models.Model):
         if self.title:
             return self.title
         return f"Contribution {self.id}"
+    
+    def is_enrolled(self, user):
+        if not user.is_authenticated:
+            return False
+        return self.enrollements.filter(user=user).exists()
+
 
     class Meta:
         verbose_name_plural = "Contributions"

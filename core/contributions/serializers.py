@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContributionTags, Contributions, ContributionVideos, ContributionNotes, ContributionsComments, ContributionRatings
+from .models import  Contributions, ContributionVideos, ContributionNotes, ContributionsComments, ContributionRatings
 from university.models import University,Department
 
 class UniversitySerializer(serializers.ModelSerializer):
@@ -17,14 +17,14 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class ContributionVideosListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContributionVideos
-        fields = ['id', 'title']
-        read_only_fields = ['id']
+        fields = ['id', 'title','total_views']
+        read_only_fields = ['id','total_views']
 
 class ContributionVideosSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContributionVideos
-        fields = ['id', 'title', 'video_file', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'video_file', 'created_at','total_views', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'total_views','updated_at']
 
 class ContributionNotesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -38,11 +38,7 @@ class ContributionNotesListSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-class ContributionsTagsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ContributionTags
-        fields = ['id', 'name']
-        read_only_fields = ['id']
+
 
 
 class ContributionRatingsSerializer(serializers.ModelSerializer):
@@ -58,11 +54,12 @@ class ContributionRatingsSerializer(serializers.ModelSerializer):
 class BasicContributionsSerializer(serializers.ModelSerializer):
     department = DepartmentSerializer(read_only=True)
     related_University = UniversitySerializer(read_only=True)
+    thumbnail_image = serializers.ImageField(read_only=True)
     
     class Meta:
         model = Contributions
-        fields = ['id', 'title', 'price' ,'course_code','thumbnail_image','department','related_University','ratings', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'price' ,'course_code','thumbnail_image','department','related_University','ratings','total_views', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at','total_views', 'updated_at']
 
     def validate(self, attrs):
 
@@ -78,37 +75,35 @@ class BasicContributionsSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
 
+
+
+class ContributionDetailSerializer(serializers.ModelSerializer):
+    contributionVideos = ContributionVideosListSerializer(many=True)
+    contributionNotes = ContributionNotesListSerializer(many=True)
+
+    class Meta:
+        model = Contributions
+        fields = ['id','user','title','course_code','description','thumbnail_image','price','related_University','department','ratings','total_views','active','created_at','contributionVideos','contributionNotes']
+
+
+
+
 class CreateContributionsSerializer(serializers.ModelSerializer):
-    tags = ContributionsTagsSerializer(many=True, required=False)
-    videos = ContributionVideosSerializer(many=True, required=False)
-    notes = ContributionNotesSerializer(many=True, required=False)
     user = serializers.StringRelatedField()
+    thumbnail_image = serializers.ImageField(read_only=True)
+
 
 
     class Meta:
         model = Contributions
-        fields = ['id','user', 'title', 'description','course_code', 'price', 'tags','thumbnail_image','related_University', 'department', 'videos', 'notes', 'ratings', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'user', 'ratings']
+        fields = ['id','user', 'title', 'description','course_code', 'price','thumbnail_image','related_University', 'department', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at','total_views', 'updated_at', 'user']
 
 
     def create(self, validated_data):
-        tags_data = validated_data.pop('tags', [])
-        videos_data = validated_data.pop('videos', [])
-        notes_data = validated_data.pop('notes', [])
         
         contribution = Contributions.objects.create(**validated_data)
         
-        for tag_data in tags_data:
-            tag, created = ContributionTags.objects.get_or_create(**tag_data)
-            contribution.tags.add(tag)
-        
-        for video_data in videos_data:
-            video = ContributionVideos.objects.create(**video_data)
-            contribution.videos.add(video)
-        
-        for note_data in notes_data:
-            note = ContributionNotes.objects.create(**note_data)
-            contribution.notes.add(note)
 
 
         related_university = validated_data.get('related_University')
@@ -126,75 +121,37 @@ class CreateContributionsSerializer(serializers.ModelSerializer):
                 contribution.save()
         return contribution
     
-    def update(self, instance, validated_data):
-        tags_data = validated_data.pop('tags', [])
-        videos_data = validated_data.pop('videos', [])
-        notes_data = validated_data.pop('notes', [])
+    # def update(self, instance, validated_data):
+        
 
-        # Update simple fields
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
+    #     # Update simple fields
+    #     for attr, value in validated_data.items():
+    #         setattr(instance, attr, value)
+    #     instance.save()
 
-        # Update tags
-        if tags_data:
-            instance.tags.clear()
-            for tag_data in tags_data:
-                tag, created = ContributionTags.objects.get_or_create(**tag_data)
-                instance.tags.add(tag)
-
-        # Update videos
-        if videos_data:
-            instance.videos.clear()
-            for video_data in videos_data:
-                video = ContributionVideos.objects.create(**video_data)
-                instance.videos.add(video)
-
-        # Update notes
-        if notes_data:
-            instance.notes.clear()
-            for note_data in notes_data:
-                note = ContributionNotes.objects.create(**note_data)
-                instance.notes.add(note)
-
-        return instance
-    
+       
     
     
 
 class ContributionsSerializer(serializers.ModelSerializer):
     related_University = UniversitySerializer()
     department = DepartmentSerializer()
-    tags = ContributionsTagsSerializer(many=True, required=False)
-    videos = ContributionVideosListSerializer(many=True, required=False)
-    notes = ContributionNotesListSerializer(many=True, required=False)
+    thumbnail_image = serializers.ImageField(read_only=True)
+    
     user = serializers.StringRelatedField()
 
 
     class Meta:
         model = Contributions
-        fields = ['id','user', 'title', 'description', 'price','course_code', 'tags', 'related_University', 'department', 'thumbnail_image','videos', 'notes', 'ratings', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id','user', 'title', 'description', 'price','course_code',  'related_University', 'department', 'thumbnail_image', 'ratings','total_views', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at','total_views', 'updated_at']
 
 
     def create(self, validated_data):
-        tags_data = validated_data.pop('tags', [])
-        videos_data = validated_data.pop('videos', [])
-        notes_data = validated_data.pop('notes', [])
-        
+       
         contribution = Contributions.objects.create(**validated_data)
         
-        for tag_data in tags_data:
-            tag, created = ContributionTags.objects.get_or_create(**tag_data)
-            contribution.tags.add(tag)
         
-        for video_data in videos_data:
-            video = ContributionVideos.objects.create(**video_data)
-            contribution.videos.add(video)
-        
-        for note_data in notes_data:
-            note = ContributionNotes.objects.create(**note_data)
-            contribution.notes.add(note)
 
         related_department = validated_data.get('department')
         if related_department:
@@ -227,48 +184,18 @@ class ContributionsCommentsSerializer(serializers.ModelSerializer):
 class UserContributionsSerializer(serializers.ModelSerializer):
     related_University = UniversitySerializer()
     department = DepartmentSerializer()
-    tags = ContributionsTagsSerializer(many=True, required=False)
-    videos = ContributionVideosSerializer(many=True, required=False)
-    notes = ContributionNotesSerializer(many=True, required=False)
+    contributionVideos = ContributionVideosSerializer(many=True)
+    contributionNotes = ContributionNotesSerializer(many=True)
+    comments=ContributionsCommentsSerializer(many=True)
+    
     user = serializers.StringRelatedField()
 
 
     class Meta:
         model = Contributions
-        fields = ['id','user', 'title', 'description', 'price','course_code', 'tags', 'related_University', 'department', 'thumbnail_image','videos', 'notes', 'ratings', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id','user', 'title', 'description', 'price','course_code', 'contributionVideos','related_University','contributionNotes','comments', 'department', 'thumbnail_image', 'ratings','total_views', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at','total_views', 'updated_at']
 
 
-    def create(self, validated_data):
-        tags_data = validated_data.pop('tags', [])
-        videos_data = validated_data.pop('videos', [])
-        notes_data = validated_data.pop('notes', [])
-        
-        contribution = Contributions.objects.create(**validated_data)
-        
-        for tag_data in tags_data:
-            tag, created = ContributionTags.objects.get_or_create(**tag_data)
-            contribution.tags.add(tag)
-        
-        for video_data in videos_data:
-            video = ContributionVideos.objects.create(**video_data)
-            contribution.videos.add(video)
-        
-        for note_data in notes_data:
-            note = ContributionNotes.objects.create(**note_data)
-            contribution.notes.add(note)
-
-        related_department = validated_data.get('department')
-        if related_department:
-            department_obj, created = Department.objects.get_or_create(name=related_department['name'])
-            contribution.department = department_obj
-            contribution.save()
-
-        related_university = validated_data.get('related_University')
-        if related_university:
-            university_obj = University.objects.filter(name=related_university).first()
-            if university_obj:
-                contribution.related_University = university_obj
-                contribution.save()
-        return contribution
+    
 

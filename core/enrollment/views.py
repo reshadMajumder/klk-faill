@@ -3,10 +3,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 
-from contributions.models import ContributionVideos
+from contributions.models import ContributionVideos,ContributionNotes
 from .models import ContributionVideoViewCount,Enrollement
-from .serializers import EnrollmentSerializer,GetEnrollmentSerializer,ContributionVideoSerializer,GetEnrollmentDetailSerializer
-
+from .serializers import EnrollmentSerializer,GetEnrollmentSerializer,GetEnrollmentDetailSerializer
+from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
 
 
 
@@ -20,7 +21,6 @@ class EnrollmentView(APIView):
 
     def post(self, request):
 
-        user = request.user
         serializer = EnrollmentSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             enrollment = serializer.save()
@@ -37,7 +37,7 @@ class EnrollmentView(APIView):
                 serializer = GetEnrollmentDetailSerializer(enrollment)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                enrollments = Enrollement.objects.filter(user=user).select_related('user', 'contribution').prefetch_related('contribution__videos', 'contribution__notes')
+                enrollments = Enrollement.objects.filter(user=user).select_related('user', 'contribution')
                 serializer = GetEnrollmentSerializer(enrollments, many=True)
                 return Response({"message": "Enrollments retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
         except Enrollement.DoesNotExist:
@@ -46,26 +46,70 @@ class EnrollmentView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class EnrolledVideoWatch(APIView):
-    """
-    get the single video with the file url and also add to watch checklist count
 
+class ContributionVideoWatch(APIView):
     """
-    def get(self,request,video_id=None):
+    Track a unique view for a video and return the video file URL.
+    """
+    def get(self, request, video_id):
         user = request.user
+        video = get_object_or_404(ContributionVideos, id=video_id)
+        contribution = video.contribution
+
+# --- ENROLLMENT CHECK ---
+        if not contribution.is_enrolled(user):
+            return Response(
+                {"error": "You must enroll in this contribution to watch the video."},
+                status=403
+            )
+        # Count unique view
         try:
-            if video_id:
-                video = ContributionVideos.objects.get(id=video_id)
+            ContributionVideoViewCount.objects.create(
+                video=video,
+                user=user
+            )
+            # If created → increment counters
+            video.total_views = video.total_views + 1
+            video.save(update_fields=["total_views"])
 
-                # Record the view for this user and video
-                ContributionVideoViewCount.objects.get_or_create(video=video, user=user)
+            contribution.total_views = contribution.total_views + 1
+            contribution.save(update_fields=["total_views"])
 
-                serializer = ContributionVideoSerializer(video)
-                return Response({"message": "video retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
-        except ContributionVideos.DoesNotExist:
-            return Response({"error": "ContributionVideos not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except IntegrityError:
+            # Already viewed → don’t increment
+            pass
 
+        # Return the actual video URL
+        return Response(
+            {
+                "video_id": str(video.id),
+                "title": video.title,
+                "video_url": video.video_file,
+                "total_views": video.total_views,
+            },
+            status=200
+        )
+    
 
+class EnrolledContributionNotesView(APIView):
+    """
+    Return a note file URL only if the user is enrolled
+    in the contribution.
+    """
+    def get(self, request, note_id):
+        user = request.user
+        note = get_object_or_404(ContributionNotes, id=note_id)
+        contribution = note.contribution
 
+        # --- ENROLLMENT CHECK ---
+        if not contribution.is_enrolled(user):
+            return Response({"error": "You must enroll in this contribution to access notes."},status=403)
+
+        return Response(
+            {
+                "note_id": str(note.id),
+                "title": note.title,
+                "note_url": note.note_file,
+            },
+            status=200
+        )

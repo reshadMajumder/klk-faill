@@ -10,13 +10,13 @@ from rest_framework import generics
 from rest_framework.response import Response    
 from rest_framework import status, permissions
 from .models import Contributions, ContributionVideos, ContributionNotes, ContributionsComments, ContributionRatings
-from .serializers import (BasicContributionsSerializer, ContributionsSerializer, ContributionVideosSerializer, 
+from .serializers import (BasicContributionsSerializer, ContributionsSerializer, ContributionVideosSerializer, ContributionDetailSerializer,
                           ContributionNotesSerializer, ContributionsCommentsSerializer, ContributionRatingsSerializer, BasicContributionsSerializer, CreateContributionsSerializer,UserContributionsSerializer)  
 
-
-
-
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from django.shortcuts import get_object_or_404
+
+
 
 class ContributionsListView(ListAPIView):
     """
@@ -27,7 +27,7 @@ class ContributionsListView(ListAPIView):
     serializer_class = BasicContributionsSerializer
 
     def get_queryset(self):
-        queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
+        queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related ('comments', 'contribution_ratings')
         university_id = self.request.query_params.get('university')
         department_id = self.request.query_params.get('department')
         course_code = self.request.query_params.get('course_code')
@@ -40,18 +40,30 @@ class ContributionsListView(ListAPIView):
         return queryset
 
 
+
 class ContributionDetailView(RetrieveAPIView):
     """
-    API endpoint to retrieve a single contribution by id.
+    get the single contribution with details and also video
+    notes and video will only contain title
     """
     permission_classes = [permissions.AllowAny]
-    queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
-    serializer_class = ContributionsSerializer
+
+    serializer_class = ContributionDetailSerializer
+    queryset = Contributions.objects.prefetch_related(
+        'contributionVideos',
+        'contributionNotes'
+    ).select_related(
+        'user',
+        'related_University',
+        'department'
+    )
+    lookup_field = 'id'
+
 
     
 class ContributionsView(APIView):
     """
-    API endpoint to create a new contribution.
+    API endpoint to create update delete a new contribution.
     """
     permission_classes = [permissions.IsAuthenticated]
     
@@ -91,6 +103,85 @@ class ContributionsView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
+class ContributionVideoCreateView(APIView):
+    """
+    Create, update, and delete videos for a contribution.
+    """
+
+    def post(self, request, contribution_id):
+        contribution = get_object_or_404(Contributions, id=contribution_id)
+
+        serializer = ContributionVideosSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(contribution=contribution)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+    def put(self, request, contribution_id, video_id):
+        video = get_object_or_404(
+            ContributionVideos,
+            id=video_id,
+            contribution_id=contribution_id
+        )
+
+        serializer = ContributionVideosSerializer(video, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=200)
+
+    def delete(self, request, contribution_id, video_id):
+        video = get_object_or_404(
+            ContributionVideos,
+            id=video_id,
+            contribution_id=contribution_id
+        )
+        video.delete()
+        return Response({"message": "Video deleted"}, status=204)
+
+
+
+
+class ContributionNotesCreateView(APIView):
+    """
+    Create, update, and delete notes for a contribution.
+    """
+
+    def post(self, request, contribution_id):
+        contribution = get_object_or_404(Contributions, id=contribution_id)
+
+        serializer = ContributionNotesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(contribution=contribution)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+    def put(self, request, contribution_id, note_id):
+        note = get_object_or_404(
+            ContributionNotes,
+            id=note_id,
+            contribution_id=contribution_id
+        )
+
+        serializer = ContributionNotesSerializer(note, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=200)
+
+    def delete(self, request, contribution_id, note_id):
+        video = get_object_or_404(
+            ContributionNotes,
+            id=note_id,
+            contribution_id=contribution_id
+        )
+        video.delete()
+        return Response({"message": "Video deleted"}, status=204)
+
+
+
 
 class PersonalizedContributionsView(APIView):
     """
@@ -105,7 +196,7 @@ class PersonalizedContributionsView(APIView):
             if not user_university:
                 return Response({"error": "User does not have an associated university."}, status=status.HTTP_400_BAD_REQUEST)
 
-            contributions = Contributions.objects.filter(related_University=user_university).select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
+            contributions = Contributions.objects.filter(related_University=user_university).select_related('related_University', 'department').prefetch_related('comments', 'contribution_ratings')
             serializer = BasicContributionsSerializer(contributions, many=True)
             return Response({"message": "Personalized contributions retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
         except Exception as e:
@@ -113,7 +204,6 @@ class PersonalizedContributionsView(APIView):
         
 
 
-from rest_framework.generics import ListAPIView
 
 class UserContributionsView(ListAPIView):
     """
@@ -124,8 +214,8 @@ class UserContributionsView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Contributions.objects.filter(user=user).select_related('related_University', 'department').prefetch_related('videos', 'notes', 'comments', 'contribution_ratings')
-        
+        return Contributions.objects.filter(user=user).select_related('related_University', 'department').prefetch_related( 'comments', 'contribution_ratings')
+       
 
 class UserContributionDetailView(APIView):
     """

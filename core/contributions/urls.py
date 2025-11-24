@@ -1,19 +1,26 @@
 from django.contrib import admin
 from django.urls import path
 
-from .views import ContributionsListView, ContributionDetailView, ContributionsView, PersonalizedContributionsView, UserContributionsView,UserContributionDetailView
+from .views import ContributionsListView, ContributionDetailView, ContributionsView, PersonalizedContributionsView, UserContributionsView,UserContributionDetailView,ContributionVideoCreateView,ContributionNotesCreateView
 
 
 
 urlpatterns = [
     path("all-contributions/", ContributionsListView.as_view(), name="contributions-list"),
-    path("contributions/<uuid:pk>/", ContributionDetailView.as_view(), name="contributions-detail"),
-    path("contributions/create/", ContributionsView.as_view(), name="create-contribution"),
-    path("contributions/<uuid:contribution_id>/edit/", ContributionsView.as_view(), name="edit-contribution"),
-    path("contributions/<uuid:contribution_id>/delete/", ContributionsView.as_view(), name="delete-contribution"),
-    path("contributions/personalized/", PersonalizedContributionsView.as_view(), name="personalized-contributions"),
-    path("contributions/user/", UserContributionsView.as_view(), name="user-contributions"),
-    path("contributions/user/<uuid:contribution_id>/", UserContributionDetailView.as_view(), name="user-contributions"),
+    path("<uuid:id>/", ContributionDetailView.as_view(), name="contributions-detail"),
+    path("create/", ContributionsView.as_view(), name="create-contribution"),
+    path("<uuid:contribution_id>/edit/", ContributionsView.as_view(), name="edit-contribution"),
+    path("<uuid:contribution_id>/delete/", ContributionsView.as_view(), name="delete-contribution"),
+    path("<uuid:contribution_id>/videos/", ContributionVideoCreateView.as_view(), name="contribution-video-create"),
+    path("<uuid:contribution_id>/videos/<uuid:video_id>/", ContributionVideoCreateView.as_view(), name="contribution-video-create"),
+
+    path("<uuid:contribution_id>/notes/", ContributionNotesCreateView.as_view(), name="contribution-video-create"),
+    path("<uuid:contribution_id>/notes/<uuid:note_id>/", ContributionNotesCreateView.as_view(), name="contribution-video-create"),
+
+
+    path("personalized/", PersonalizedContributionsView.as_view(), name="personalized-contributions"),
+    path("user/", UserContributionsView.as_view(), name="user-contributions"),
+    path("user/<uuid:contribution_id>/details/", UserContributionDetailView.as_view(), name="user-contributions"),
 
 ]
 
