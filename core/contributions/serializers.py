@@ -80,6 +80,7 @@ class BasicContributionsSerializer(serializers.ModelSerializer):
 class ContributionDetailSerializer(serializers.ModelSerializer):
     contributionVideos = ContributionVideosListSerializer(many=True)
     contributionNotes = ContributionNotesListSerializer(many=True)
+    thumbnail_image = serializers.ImageField(read_only=True)
 
     class Meta:
         model = Contributions

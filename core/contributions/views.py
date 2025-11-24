@@ -27,6 +27,13 @@ class ContributionsListView(ListAPIView):
     serializer_class = BasicContributionsSerializer
 
     def get_queryset(self):
+        """
+        use query params to filter contributions
+        /?university=1&department=2&course_code=CS101
+        /?university=1&department=2
+        /?course_code=CS101
+        
+        """
         queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related ('comments', 'contribution_ratings')
         university_id = self.request.query_params.get('university')
         department_id = self.request.query_params.get('department')
