@@ -90,6 +90,13 @@ class Contributions(models.Model):
             return False
         return self.enrollements.filter(user=user).exists()
 
+    def update_average_rating(self):
+        from django.db.models import Avg
+        avg_rating = self.contribution_ratings.aggregate(avg=Avg('rating'))['avg'] or 0
+        self.ratings = round(float(avg_rating), 2)
+        self.save(update_fields=['ratings'])
+
+
 
     class Meta:
         verbose_name_plural = "Contributions"
