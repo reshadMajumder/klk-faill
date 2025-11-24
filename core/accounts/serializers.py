@@ -7,6 +7,7 @@ from rest_framework import serializers
 
 # Custom serializer for user profile
 class UserProfileSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.ImageField(required=False)
     class Meta:
         model = User
         fields = ('username', 'email', 'profile_picture', 'phone_number', 'date_of_birth', 'university', 'is_email_verified', 'date_joined', 'is_active')
