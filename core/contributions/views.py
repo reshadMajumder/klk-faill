@@ -32,9 +32,9 @@ class ContributionsListView(ListAPIView):
         /?university=1&department=2&course_code=CS101
         /?university=1&department=2
         /?course_code=CS101
-        
+
         """
-        queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related ('comments', 'contribution_ratings')
+        queryset = Contributions.objects.filter(active=True).select_related('related_University', 'department').prefetch_related ('comments', 'contribution_ratings')
         university_id = self.request.query_params.get('university')
         department_id = self.request.query_params.get('department')
         course_code = self.request.query_params.get('course_code')
@@ -56,7 +56,7 @@ class ContributionDetailView(RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
 
     serializer_class = ContributionDetailSerializer
-    queryset = Contributions.objects.prefetch_related(
+    queryset = Contributions.objects.filter(active=True).prefetch_related(
         'contributionVideos',
         'contributionNotes'
     ).select_related(
@@ -203,7 +203,7 @@ class PersonalizedContributionsView(APIView):
             if not user_university:
                 return Response({"error": "User does not have an associated university."}, status=status.HTTP_400_BAD_REQUEST)
 
-            contributions = Contributions.objects.filter(related_University=user_university).select_related('related_University', 'department').prefetch_related('comments', 'contribution_ratings')
+            contributions = Contributions.objects.filter(related_University=user_university, active=True).select_related('related_University', 'department').prefetch_related('comments', 'contribution_ratings')
             serializer = BasicContributionsSerializer(contributions, many=True)
             return Response({"message": "Personalized contributions retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
         except Exception as e:
@@ -237,4 +237,76 @@ class UserContributionDetailView(APIView):
             return Response({"message": "Contribution retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
         except Contributions.DoesNotExist:
             return Response({"error": "Contribution not found or you do not have permission to view this contribution."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+class ContributionCommentsView(APIView):
+    """
+    API endpoint to retrieve comments for a specific contribution.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, contribution_id):
+        try:
+            Contributions.objects.only('id').get(id=contribution_id, active=True)
+        except Contributions.DoesNotExist:
+            return Response({"error": "Contribution not found"}, status=404)
+
+        comments = (
+            ContributionsComments.objects
+            .filter(contribution_id=contribution_id)
+            .select_related('user')
+        )
+
+        serializer = ContributionsCommentsSerializer(comments, many=True)
+
+        return Response({
+            "message": "Comments retrieved successfully",
+            "data": serializer.data
+        })
+
+
+class ContributionCommentCreateView(APIView):
+    """
+    API endpoint to create a comment for a specific contribution.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    def post(self, request, contribution_id):
+        user = request.user
+        try:
+            contribution = Contributions.objects.get(id=contribution_id, active=True)
+        except Contributions.DoesNotExist:
+            return Response({"error": "Contribution not found or inactive."}, status=status.HTTP_404_NOT_FOUND)
+            
+
+        serializer = ContributionsCommentsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=user, contribution=contribution)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def put(self, request, contribution_id, comment_id):
+        user = request.user
+        try:
+            comment = ContributionsComments.objects.get(id=comment_id, user=user, contribution__id=contribution_id)
+        except ContributionsComments.DoesNotExist:
+            return Response({"error": "Comment not found or you do not have permission to update this comment."}, status=status.HTTP_404_NOT_FOUND) 
+            
+
+        serializer = ContributionsCommentsSerializer(comment, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, contribution_id, comment_id):
+        user = request.user
+        try:
+            comment = ContributionsComments.objects.get(id=comment_id, user=user, contribution__id=contribution_id)
+        except ContributionsComments.DoesNotExist:
+            return Response({"error": "Comment not found or you do not have permission to delete this comment."}, status=status.HTTP_404_NOT_FOUND) 
+            
+
+        comment.delete()
+        return Response({"message": "Comment deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 

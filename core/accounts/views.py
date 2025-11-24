@@ -97,7 +97,7 @@ class LoginView(APIView):
                     pass
             if user is None:
                 return Response({"error": "User with this username or email does not exist."}, status=status.HTTP_404_NOT_FOUND)
-            if user.check_password(password):
+            if user.check_password(password) and user.is_email_verified:
                 refresh = RefreshToken.for_user(user)
                 access = refresh.access_token
                 return Response({
