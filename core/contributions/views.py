@@ -238,3 +238,19 @@ class UserContributionDetailView(APIView):
         except Contributions.DoesNotExist:
             return Response({"error": "Contribution not found or you do not have permission to view this contribution."}, status=status.HTTP_404_NOT_FOUND)
 
+
+
+
+class ContributionCommentsView(APIView):
+    """
+    API endpoint to retrieve comments for a specific contribution.
+    """
+    permission_classes = [permissions.AllowAny]
+    def get(self, request, contribution_id):
+        try:
+            contribution = Contributions.objects.get(id=contribution_id, active=True)
+            comments = contribution.comments.all()
+            serializer = ContributionsCommentsSerializer(comments, many=True)
+            return Response({"message": "Comments retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+        except Contributions.DoesNotExist:
+            return Response({"error": "Contribution not found or inactive."}, status=status.HTTP_404_NOT_FOUND)
