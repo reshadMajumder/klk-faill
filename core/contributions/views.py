@@ -310,3 +310,44 @@ class ContributionCommentCreateView(APIView):
         comment.delete()
         return Response({"message": "Comment deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
+
+
+class RateContributionView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, contribution_id):
+        rating_value = request.data.get("rating")
+
+        # Validate rating
+        if rating_value is None:
+            return Response({"error": "Rating is required"}, status=400)
+
+        try:
+            rating_value = float(rating_value)
+        except ValueError:
+            return Response({"error": "Invalid rating"}, status=400)
+
+        if not (0 <= rating_value <= 5):
+            return Response({"error": "Rating must be between 0 and 5"}, status=400)
+
+        # Fetch contribution
+        try:
+            contribution = Contributions.objects.get(id=contribution_id, active=True)
+        except Contributions.DoesNotExist:
+            return Response({"error": "Contribution not found"}, status=404)
+
+        # Create or update rating
+        rating_obj, created = ContributionRatings.objects.update_or_create(
+            user=request.user,
+            contribution=contribution,
+            defaults={'rating': rating_value}
+        )
+
+        # Update cached average
+        contribution.update_average_rating()
+
+        return Response({
+            "message": "Rating submitted",
+            "your_rating": rating_value,
+            "average_rating": contribution.ratings
+        })

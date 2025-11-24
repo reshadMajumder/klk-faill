@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from .views import ContributionsListView, ContributionDetailView, ContributionsView, PersonalizedContributionsView, UserContributionsView,UserContributionDetailView,ContributionVideoCreateView,ContributionNotesCreateView,ContributionCommentsView,ContributionCommentCreateView
+from .views import ContributionsListView, ContributionDetailView, ContributionsView, PersonalizedContributionsView, UserContributionsView,UserContributionDetailView,ContributionVideoCreateView,ContributionNotesCreateView,ContributionCommentsView,ContributionCommentCreateView,RateContributionView
 
 
 
@@ -26,6 +26,8 @@ urlpatterns = [
     path("<uuid:contribution_id>/get-comments/", ContributionCommentsView.as_view(), name="user-contribution-comments"),
     path("<uuid:contribution_id>/comments/", ContributionCommentCreateView.as_view(), name="user-contribution-comments"),
     path("<uuid:contribution_id>/comments/<uuid:comment_id>/", ContributionCommentCreateView.as_view(), name="user-contribution-comments"),
+
+    path("<uuid:contribution_id>/rate/", RateContributionView.as_view(), name="rate-contribution"),
 
 ]
 
