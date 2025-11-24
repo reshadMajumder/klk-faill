@@ -32,9 +32,9 @@ class ContributionsListView(ListAPIView):
         /?university=1&department=2&course_code=CS101
         /?university=1&department=2
         /?course_code=CS101
-        
+
         """
-        queryset = Contributions.objects.all().select_related('related_University', 'department').prefetch_related ('comments', 'contribution_ratings')
+        queryset = Contributions.objects.filter(active=True).select_related('related_University', 'department').prefetch_related ('comments', 'contribution_ratings')
         university_id = self.request.query_params.get('university')
         department_id = self.request.query_params.get('department')
         course_code = self.request.query_params.get('course_code')
@@ -56,7 +56,7 @@ class ContributionDetailView(RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
 
     serializer_class = ContributionDetailSerializer
-    queryset = Contributions.objects.prefetch_related(
+    queryset = Contributions.objects.filter(active=True).prefetch_related(
         'contributionVideos',
         'contributionNotes'
     ).select_related(
@@ -203,7 +203,7 @@ class PersonalizedContributionsView(APIView):
             if not user_university:
                 return Response({"error": "User does not have an associated university."}, status=status.HTTP_400_BAD_REQUEST)
 
-            contributions = Contributions.objects.filter(related_University=user_university).select_related('related_University', 'department').prefetch_related('comments', 'contribution_ratings')
+            contributions = Contributions.objects.filter(related_University=user_university, active=True).select_related('related_University', 'department').prefetch_related('comments', 'contribution_ratings')
             serializer = BasicContributionsSerializer(contributions, many=True)
             return Response({"message": "Personalized contributions retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
         except Exception as e:
