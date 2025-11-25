@@ -91,7 +91,7 @@ class ContributionDetailSerializer(serializers.ModelSerializer):
 
 class CreateContributionsSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
-    thumbnail_image = serializers.ImageField(read_only=True)
+    thumbnail_image = serializers.ImageField(required=False)
 
 
 
