@@ -1,3 +1,4 @@
+from typing import Required
 from rest_framework import serializers
 from .models import  Contributions, ContributionVideos, ContributionNotes, ContributionsComments, ContributionRatings
 from university.models import University,Department
@@ -188,6 +189,7 @@ class UserContributionsSerializer(serializers.ModelSerializer):
     contributionVideos = ContributionVideosSerializer(many=True)
     contributionNotes = ContributionNotesSerializer(many=True)
     comments=ContributionsCommentsSerializer(many=True)
+    thumbnail_image = serializers.ImageField(required=False)
     
     user = serializers.StringRelatedField()
 
