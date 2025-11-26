@@ -27,13 +27,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         import random
         first_name = validated_data.get('first_name', '')
         last_name = validated_data.get('last_name', '')
-        # Generate a random 4-digit integer
-        rand_int = random.randint(1000, 9999)
-        base_username = f"{first_name.lower()}_{last_name.lower()}_{str(rand_int)}"
-        # Ensure username is unique
+        # Generate a random 2-digit integer
+        rand_int = random.randint(10, 99)
+        base_username = f"{first_name.lower()}_{str(rand_int)}"
+        # Ensure username is unique so add 4 digits
         while User.objects.filter(username=base_username).exists():
             rand_int = random.randint(1000, 9999)
-            base_username = f"{first_name.lower()}_{last_name.lower()}_{str(rand_int)}"
+            base_username = f"{first_name.lower()}_{str(rand_int)}"
         user = User(
             first_name=first_name,
             last_name=last_name,
@@ -47,4 +47,3 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
-        
