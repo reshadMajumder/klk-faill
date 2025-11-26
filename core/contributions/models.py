@@ -20,6 +20,8 @@ class ContributionVideos(models.Model):
     total_views = models.IntegerField(default=0)   
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-created_at']
 
 
 
@@ -80,6 +82,9 @@ class Contributions(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
         if self.title:
             return self.title
@@ -109,7 +114,7 @@ class Contributions(models.Model):
 
 class ContributionsComments(models.Model):
     """
-    Model for storing comments of contributions.
+    Model for storing comments of contributions. sort from latest to oldest
     """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     contribution = models.ForeignKey('Contributions', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
@@ -118,8 +123,13 @@ class ContributionsComments(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
         if self.user and self.user.username:
             return self.user.username
         return f"Comment {self.id}"
+
+    
     
