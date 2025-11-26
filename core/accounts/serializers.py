@@ -10,7 +10,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     profile_picture = serializers.ImageField(required=False)
     class Meta:
         model = User
-        fields = ('username', 'email', 'profile_picture', 'phone_number', 'date_of_birth', 'university', 'is_email_verified', 'date_joined', 'is_active')
+        fields = ('username','first_name', 'last_name', 'email', 'profile_picture', 'phone_number', 'date_of_birth', 'university', 'is_email_verified', 'date_joined', 'is_active')
         read_only_fields = ('username', 'email', 'date_joined', 'is_email_verified', 'is_active')
 
 
@@ -21,19 +21,22 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('first_name', 'email', 'password', 'profile_picture', 'phone_number', 'date_of_birth', 'university')
+        fields = ('first_name', 'last_name', 'email', 'password', 'profile_picture', 'phone_number', 'date_of_birth', 'university')
 
     def create(self, validated_data):
         import random
         first_name = validated_data.get('first_name', '')
-        # Generate a random 6-digit integer
-        rand_int = random.randint(100000, 999999)
+        last_name = validated_data.get('last_name', '')
+        # Generate a random 2-digit integer
+        rand_int = random.randint(10, 99)
         base_username = f"{first_name.lower()}_{str(rand_int)}"
-        # Ensure username is unique
+        # Ensure username is unique so add 4 digits
         while User.objects.filter(username=base_username).exists():
-            rand_int = random.randint(100000, 999999)
+            rand_int = random.randint(1000, 9999)
             base_username = f"{first_name.lower()}_{str(rand_int)}"
         user = User(
+            first_name=first_name,
+            last_name=last_name,
             username=base_username,
             email=validated_data['email'],
             profile_picture=validated_data.get('profile_picture'),

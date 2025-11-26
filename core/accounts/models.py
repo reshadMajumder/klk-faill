@@ -13,6 +13,8 @@ from university.models import University
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, db_index=True)
+    first_name = models.CharField(max_length=255, null=True, blank=True)
+    last_name = models.CharField(max_length=255, null=True, blank=True)
     username = models.CharField(max_length=255, unique=True, db_index=True)
     profile_picture = CloudinaryField('image', blank=True, null=True)
     is_email_verified = models.BooleanField(default=False, db_index=True)
