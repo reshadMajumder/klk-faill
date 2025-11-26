@@ -98,12 +98,13 @@ class CreateContributionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributions
-        fields = ['id','user', 'title', 'description','course_code', 'price','thumbnail_image','related_University', 'department', 'created_at', 'updated_at']
+        fields = ['id','user', 'title', 'description','active','course_code', 'price','thumbnail_image','related_University', 'department', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at','total_views', 'updated_at', 'user']
 
 
     def create(self, validated_data):
-        
+        active = validated_data.get('active', True)
+        validated_data['active'] = active
         contribution = Contributions.objects.create(**validated_data)
         
 
