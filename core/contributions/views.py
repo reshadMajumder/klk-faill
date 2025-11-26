@@ -212,17 +212,20 @@ class PersonalizedContributionsView(APIView):
 
 
 
-class UserContributionsView(ListAPIView):
+class UserContributionsView(APIView):
     """
-    Paginated list of contributions filtered by user's university
+     list of contributions filtered by user
     """
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = BasicContributionsSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        return Contributions.objects.filter(user=user).select_related('related_University', 'department').prefetch_related( 'comments', 'contribution_ratings')
-       
+    def get(self, request):
+        user = request.user
+        try:
+            contributions = Contributions.objects.filter(user=user).select_related('related_University', 'department').prefetch_related( 'comments', 'contribution_ratings')
+            serializer = BasicContributionsSerializer(contributions, many=True)
+            return Response({"message": "Personalized contributions retrieved successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
 
 class UserContributionDetailView(APIView):
     """

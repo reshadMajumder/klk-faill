@@ -197,7 +197,7 @@ class UserContributionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributions
-        fields = ['id','user', 'title', 'description', 'price','course_code', 'contributionVideos','related_University','contributionNotes','comments', 'department', 'thumbnail_image', 'ratings','total_views', 'created_at', 'updated_at']
+        fields = ['id','user', 'title', 'description', 'price','course_code', 'contributionVideos','related_University','contributionNotes','comments', 'department', 'thumbnail_image', 'ratings','total_views','active', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at','total_views', 'updated_at']
 
 
