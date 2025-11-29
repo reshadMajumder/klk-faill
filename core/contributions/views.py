@@ -15,6 +15,7 @@ from .serializers import (BasicContributionsSerializer, ContributionsSerializer,
 
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 
 
@@ -38,12 +39,21 @@ class ContributionsListView(ListAPIView):
         university_id = self.request.query_params.get('university')
         department_id = self.request.query_params.get('department')
         course_code = self.request.query_params.get('course_code')
+        search = self.request.query_params.get('search')
+
         if university_id:
             queryset = queryset.filter(related_University__id=university_id)
         if department_id:
             queryset = queryset.filter(department__id=department_id)
         if course_code:
             queryset = queryset.filter(course_code__iexact=course_code)
+        # for search results
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) |
+                Q(course_code__icontains=search) |
+                Q(description__icontains=search)
+            )
         return queryset
 
 
@@ -258,7 +268,7 @@ class ContributionCommentsView(APIView):
         comments = (
             ContributionsComments.objects
             .filter(contribution_id=contribution_id)
-            .select_related('user')
+            .select_related('user', 'contribution')
         )
 
         serializer = ContributionsCommentsSerializer(comments, many=True)
@@ -354,3 +364,5 @@ class RateContributionView(APIView):
             "your_rating": rating_value,
             "average_rating": contribution.ratings
         })
+
+

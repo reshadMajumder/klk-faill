@@ -173,13 +173,15 @@ class ContributionsSerializer(serializers.ModelSerializer):
 
 
 class ContributionsCommentsSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
+    # get user image and username
+    user=serializers.StringRelatedField(read_only=True)
+    profile_picture = serializers.ImageField(source='user.profile_picture', read_only=True)
     contribution = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = ContributionsComments
-        fields = ['id', 'comment', 'user', 'contribution', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'user', 'contribution', 'created_at', 'updated_at']
+        fields = ['id', 'comment', 'user', 'profile_picture', 'contribution', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'profile_picture', 'contribution', 'created_at', 'updated_at']
 
 
 
