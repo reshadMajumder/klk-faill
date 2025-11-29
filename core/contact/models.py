@@ -7,6 +7,7 @@ class ContactMessage(models.Model):
         ("support", "Support"),
         ("business", "Business Inquiry"),
         ("feedback", "Feedback"),
+        ("sponsor", "Sponsor"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
