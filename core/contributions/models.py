@@ -125,6 +125,12 @@ class ContributionsComments(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['contribution']),
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['contribution', '-created_at']),
+        ]
+
 
     def __str__(self):
         if self.user and self.user.username:

@@ -258,7 +258,7 @@ class ContributionCommentsView(APIView):
         comments = (
             ContributionsComments.objects
             .filter(contribution_id=contribution_id)
-            .select_related('user')
+            .select_related('user', 'contribution')
         )
 
         serializer = ContributionsCommentsSerializer(comments, many=True)
@@ -354,3 +354,16 @@ class RateContributionView(APIView):
             "your_rating": rating_value,
             "average_rating": contribution.ratings
         })
+
+
+
+class SearchContributionsView(APIView):
+    permission_classes = [permissions.AllowAny]
+    def get(self, request):
+        query = request.query_params.get('query')
+        if not query:
+            return Response({"error": "Query parameter is required"}, status=400)
+        
+        results = Contributions.objects.filter(title__icontains=query)
+        serializer = BasicContributionsSerializer(results, many=True)
+        return Response(serializer.data)
