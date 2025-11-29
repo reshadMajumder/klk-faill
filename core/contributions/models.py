@@ -104,11 +104,21 @@ class Contributions(models.Model):
 
 
     class Meta:
+        ordering = ['-created_at']
         verbose_name_plural = "Contributions"
         indexes = [
-            models.Index(fields=['title', 'course_code', 'price', 'active', 'created_at']),
-            models.Index(fields=['related_University', 'user']),
+            # Filter: active + university
+            models.Index(fields=['active', 'related_University', '-created_at']),
+
+            # Filter: active + department
+            models.Index(fields=['active', 'department', '-created_at']),
+
+            # Filter: active + course_code
+            models.Index(fields=['active', 'course_code', '-created_at']),
+            models.Index(fields=['title']),  # for search
+            models.Index(fields=['course_code']),  # for search
         ]
+
 
 
 
