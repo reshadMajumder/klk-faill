@@ -83,9 +83,12 @@ class ContributionDetailSerializer(serializers.ModelSerializer):
     contributionNotes = ContributionNotesListSerializer(many=True)
     thumbnail_image = serializers.ImageField(read_only=True)
 
+    author_name = serializers.CharField(source='user.username', read_only=True)
+    author_image = serializers.ImageField(source='user.profile_picture', read_only=True)
+
     class Meta:
         model = Contributions
-        fields = ['id','user','title','course_code','description','thumbnail_image','price','related_University','department','ratings','total_views','active','created_at','contributionVideos','contributionNotes']
+        fields = ['id','user','author_name','author_image','title','course_code','description','thumbnail_image','price','related_University','department','ratings','total_views','active','created_at','contributionVideos','contributionNotes']
 
 
 
