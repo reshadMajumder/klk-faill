@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useGoogleLogin } from "@react-oauth/google";
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,6 +34,55 @@ export default function LoginPage() {
     },
   });
 
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/accounts/google/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: tokenResponse.access_token }),
+        });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+          throw new Error(responseData.error || "Google login failed.");
+        }
+
+        if (responseData.access && responseData.refresh) {
+          localStorage.setItem('accessToken', responseData.access);
+          localStorage.setItem('refreshToken', responseData.refresh);
+
+          toast({
+            title: "Success!",
+            description: "You have been logged in successfully with Google.",
+          });
+
+          router.push("/dashboard");
+          router.refresh();
+        } else {
+          throw new Error("Login response did not contain the necessary tokens.");
+        }
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: error.message,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "Google login was unsuccessful.",
+      });
+    },
+  });
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
@@ -51,7 +101,7 @@ export default function LoginPage() {
       if (responseData.access && responseData.refresh) {
         localStorage.setItem('accessToken', responseData.access);
         localStorage.setItem('refreshToken', responseData.refresh);
-        
+
         toast({
           title: "Success!",
           description: "You have been logged in successfully.",
@@ -109,15 +159,15 @@ export default function LoginPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                    <div className="flex items-center">
-                        <FormLabel>Password</FormLabel>
-                        <Link
-                        href="/forgot-password"
-                        className="ml-auto inline-block text-sm underline"
-                        >
-                        Forgot your password?
-                        </Link>
-                    </div>
+                  <div className="flex items-center">
+                    <FormLabel>Password</FormLabel>
+                    <Link
+                      href="/forgot-password"
+                      className="ml-auto inline-block text-sm underline"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </div>
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
@@ -141,7 +191,7 @@ export default function LoginPage() {
             </span>
           </div>
         </div>
-        <Button variant="outline" className="w-full">
+        <Button variant="outline" className="w-full" onClick={() => googleLogin()} disabled={isLoading}>
           <GoogleIcon className="mr-2 h-4 w-4" />
           Google
         </Button>

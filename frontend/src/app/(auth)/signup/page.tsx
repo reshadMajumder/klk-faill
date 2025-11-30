@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useGoogleLogin } from "@react-oauth/google";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +84,55 @@ export default function SignupPage() {
     },
   });
 
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/accounts/google/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: tokenResponse.access_token }),
+        });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+          throw new Error(responseData.error || "Google login failed.");
+        }
+
+        if (responseData.access && responseData.refresh) {
+          localStorage.setItem('accessToken', responseData.access);
+          localStorage.setItem('refreshToken', responseData.refresh);
+
+          toast({
+            title: "Success!",
+            description: "You have been logged in successfully with Google.",
+          });
+
+          router.push("/dashboard");
+          router.refresh();
+        } else {
+          throw new Error("Login response did not contain the necessary tokens.");
+        }
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: error.message,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "Google login was unsuccessful.",
+      });
+    },
+  });
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
@@ -108,12 +158,12 @@ export default function SignupPage() {
         } else if (typeof responseData === 'string') {
           errorMessage = responseData;
         } else if (responseData.detail) {
-            errorMessage = responseData.detail;
+          errorMessage = responseData.detail;
         }
 
         throw new Error(errorMessage);
       }
-      
+
       toast({
         title: "Success!",
         description: "Your account has been created. Please verify your email.",
@@ -144,33 +194,33 @@ export default function SignupPage() {
       <div className="grid gap-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-             <div className="grid grid-cols-2 gap-4">
-                <FormField
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
                 control={form.control}
                 name="first_name"
                 render={({ field }) => (
-                    <FormItem>
+                  <FormItem>
                     <FormLabel>First Name</FormLabel>
                     <FormControl>
-                        <Input placeholder="John" {...field} />
+                      <Input placeholder="John" {...field} />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
-                 <FormField
+              />
+              <FormField
                 control={form.control}
                 name="last_name"
                 render={({ field }) => (
-                    <FormItem>
+                  <FormItem>
                     <FormLabel>Last Name</FormLabel>
                     <FormControl>
-                        <Input placeholder="Doe" {...field} />
+                      <Input placeholder="Doe" {...field} />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
+              />
             </div>
             <FormField
               control={form.control}
@@ -246,7 +296,7 @@ export default function SignupPage() {
             </span>
           </div>
         </div>
-        <Button variant="outline" className="w-full">
+        <Button variant="outline" className="w-full" onClick={() => googleLogin()} disabled={isLoading}>
           <GoogleIcon className="mr-2 h-4 w-4" />
           Google
         </Button>

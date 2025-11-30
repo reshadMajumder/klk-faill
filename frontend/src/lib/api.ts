@@ -1,7 +1,8 @@
 
 import { authFetch } from './auth';
 
-export const API_BASE_URL = "https://klk-faill-2v6t.vercel.app";
+// export const API_BASE_URL = "https://klk-faill-2v6t.vercel.app";
+export const API_BASE_URL = "http://127.0.0.1:8000";
 
 export async function createContribution(formData: FormData) {
   return authFetch('/api/contributions/create/', {
@@ -36,23 +37,23 @@ export async function updateVideoInContribution(contributionId: string, videoId:
   return authFetch(`/api/contributions/${contributionId}/videos/${videoId}/`, {
     method: 'PUT',
     headers: {
-        'Content-Type': 'application/json',
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteVideoFromContribution(contributionId: string, videoId: string) {
-    return authFetch(`/api/contributions/${contributionId}/videos/${videoId}/`, {
-      method: 'DELETE',
-    });
+  return authFetch(`/api/contributions/${contributionId}/videos/${videoId}/`, {
+    method: 'DELETE',
+  });
 }
 
 export async function addNoteToContribution(contributionId: string, data: { title: string; note_file: string; }) {
   return authFetch(`/api/contributions/${contributionId}/notes/`, {
     method: 'POST',
     headers: {
-        'Content-Type': 'application/json',
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
   });
@@ -62,33 +63,33 @@ export async function updateNoteInContribution(contributionId: string, noteId: s
   return authFetch(`/api/contributions/${contributionId}/notes/${noteId}/`, {
     method: 'PUT',
     headers: {
-        'Content-Type': 'application/json',
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteNoteFromContribution(contributionId: string, noteId: string) {
-    return authFetch(`/api/contributions/${contributionId}/notes/${noteId}/`, {
-      method: 'DELETE',
-    });
+  return authFetch(`/api/contributions/${contributionId}/notes/${noteId}/`, {
+    method: 'DELETE',
+  });
 }
 
 export async function sendContactMessage(data: { name: string; email: string; subject: string; message: string; }) {
-    const response = await fetch(`${API_BASE_URL}/api/contact/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    });
+  const response = await fetch(`${API_BASE_URL}/api/contact/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
 
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'An unknown error occurred.' }));
-        throw new Error(errorData.detail || 'Failed to send message.');
-    }
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ detail: 'An unknown error occurred.' }));
+    throw new Error(errorData.detail || 'Failed to send message.');
+  }
 
-    return response.json();
+  return response.json();
 }
 
 export async function postRating(contributionId: string, rating: number) {
@@ -116,18 +117,18 @@ export async function postComment(contributionId: string, comment: string) {
 }
 
 export async function updateComment(contributionId: string, commentId: string, comment: string) {
-    return authFetch(`/api/contributions/${contributionId}/comments/${commentId}/`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ comment: comment }),
-    });
+  return authFetch(`/api/contributions/${contributionId}/comments/${commentId}/`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ comment: comment }),
+  });
 }
 
 export async function deleteComment(contributionId: string, commentId: string) {
-    return authFetch(`/api/contributions/${contributionId}/comments/${commentId}/`, {
-        method: 'DELETE',
-    });
+  return authFetch(`/api/contributions/${contributionId}/comments/${commentId}/`, {
+    method: 'DELETE',
+  });
 }
 
