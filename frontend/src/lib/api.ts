@@ -1,8 +1,8 @@
 
 import { authFetch } from './auth';
 
-// export const API_BASE_URL = "https://klk-faill-2v6t.vercel.app";
-export const API_BASE_URL = "http://127.0.0.1:8000";
+export const API_BASE_URL = "https://klk-faill-2v6t.vercel.app";
+// export const API_BASE_URL = "http://127.0.0.1:8000";
 
 export async function createContribution(formData: FormData) {
   return authFetch('/api/contributions/create/', {
