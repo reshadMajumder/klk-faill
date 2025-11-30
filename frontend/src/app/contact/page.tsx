@@ -1,126 +1,57 @@
 
-'use client';
-
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
-
-const contactFormSchema = z.object({
-  name: z.string().min(1, 'Name is required.'),
-  email: z.string().email('Please enter a valid email.'),
-  message: z.string().min(10, 'Message must be at least 10 characters long.'),
-});
-
-type ContactFormValues = z.infer<typeof contactFormSchema>;
+import { ContactForm } from "@/components/contact-form";
+import { PageHeader } from "@/components/page-header";
+import { Mail, Phone } from "lucide-react";
 
 export default function ContactPage() {
-  const { toast } = useToast();
-  const form = useForm<ContactFormValues>({
-    resolver: zodResolver(contactFormSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      message: '',
-    },
-  });
+    return (
+        <div className="container mx-auto">
+            <PageHeader 
+                title="Contact Us" 
+                description="Have a question or feedback? Fill out the form below to get in touch with us." 
+            />
 
-  const onSubmit = (data: ContactFormValues) => {
-    // For now, we'll just show a toast notification
-    // as there's no backend endpoint to send the message to.
-    toast({
-      title: 'Feature Coming Soon!',
-      description: 'The contact form is not yet connected to a backend.',
-    });
-    console.log(data);
-  };
+            <div className="grid md:grid-cols-2 gap-12">
+                <div className="space-y-8">
+                    <div className="p-6 rounded-lg bg-muted border">
+                        <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
+                        <p className="text-muted-foreground mb-6">
+                            For any inquiries, you can also reach us through the following channels. We typically respond within 24 hours.
+                        </p>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-4">
+                                <Mail className="h-5 w-5 text-primary" />
+                                <a href="mailto:hi@reshad.dev" className="hover:underline">hi@reshad.dev</a>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <Phone className="h-5 w-5 text-primary" />
+                                <span>+8801627076527</span>
+                            </div>
+                        </div>
+                    </div>
+                     <div className="p-6 rounded-lg bg-muted border">
+                        <h3 className="text-xl font-semibold mb-4">Our Office</h3>
+                         <p className="text-muted-foreground mb-6">
+                            123 Learning Lane, Knowledge City, EDU 54321
+                        </p>
+                        <div className="aspect-video rounded-md bg-gray-300 overflow-hidden">
+                            <iframe 
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.213962649624!2d-122.4194154846813!3d37.77492957975871!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8085808c1b8214f9%3A0x1d5a7e6b1b5bbb77!2sSan%20Francisco%20City%20Hall!5e0!3m2!1sen!2sus!4v1620764495991!5m2!1sen!2sus" 
+                                width="100%" 
+                                height="100%" 
+                                style={{ border: 0 }} 
+                                allowFullScreen={false} 
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
+                            ></iframe>
+                        </div>
+                    </div>
+                </div>
 
-  return (
-    <div className="container mx-auto px-4 py-8 md:py-12">
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="font-headline text-3xl">Contact Us</CardTitle>
-          <CardDescription>
-            Have a question or feedback? Fill out the form below and we'll get back to you.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="message"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Message</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Your message here..."
-                        className="min-h-[150px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex justify-end">
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Send Message
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
-  );
+                <div>
+                    <ContactForm />
+                </div>
+            </div>
+        </div>
+    );
 }

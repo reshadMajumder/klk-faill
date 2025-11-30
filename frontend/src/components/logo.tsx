@@ -1,15 +1,25 @@
-
-import Link from "next/link";
-import { BookOpen } from "lucide-react";
+import type { SVGProps } from "react";
 import { cn } from "@/lib/utils";
 
-export function Logo({ className }: { className?: string }) {
+export function Logo(props: SVGProps<SVGSVGElement>) {
   return (
-    <Link href="/" className={cn("flex items-center gap-2", className)}>
-      <BookOpen className="h-6 w-6 text-primary" />
-      <span className="font-headline text-xl font-semibold tracking-tight">
-        CG Swap
-      </span>
-    </Link>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 130 24"
+      width="130"
+      height="24"
+      {...props}
+    >
+      <text
+        x="0"
+        y="18"
+        className="font-headline"
+        fontSize="24"
+        fontWeight="bold"
+        fill="currentColor"
+      >
+        CG-LAGBE
+      </text>
+    </svg>
   );
 }

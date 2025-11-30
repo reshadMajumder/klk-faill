@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -18,7 +17,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['PT Sans', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
         headline: ['Space Grotesk', 'sans-serif'],
         code: ['monospace'],
       },
@@ -63,6 +62,16 @@ export default {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
+        sidebar: {
+          DEFAULT: 'hsl(var(--sidebar-background))',
+          foreground: 'hsl(var(--sidebar-foreground))',
+          primary: 'hsl(var(--sidebar-primary))',
+          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+          accent: 'hsl(var(--sidebar-accent))',
+          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+          border: 'hsl(var(--sidebar-border))',
+          ring: 'hsl(var(--sidebar-ring))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -86,66 +95,12 @@ export default {
             height: '0',
           },
         },
-        'fade-in': {
-          from: { opacity: '0' },
-          to: { opacity: '1' },
-        },
-        'slide-in-up': {
-          from: { transform: 'translateY(20px)', opacity: '0' },
-          to: { transform: 'translateY(0)', opacity: '1' },
-        },
-         'pulse-slow': {
-          '50%': { opacity: '0.7' },
-        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'fade-in': 'fade-in 0.5s ease-out forwards',
-        'slide-in-up': 'slide-in-up 0.5s ease-out forwards',
-        'pulse-slow': 'pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
-       animationDelay: {
-        '300': '300ms',
-        '500': '500ms',
-        '600': '600ms',
-        '900': '900ms',
-        '2000': '2000ms',
-      },
-      typography: (theme: (arg0: string) => any) => ({
-        DEFAULT: {
-          css: {
-            h1: { fontFamily: theme('fontFamily.headline') },
-            h2: { fontFamily: theme('fontFamily.headline') },
-            h3: { fontFamily: theme('fontFamily.headline') },
-            h4: { fontFamily: theme('fontFamily.headline') },
-          },
-        },
-      }),
     },
   },
-  plugins: [
-      require('tailwindcss-animate'), 
-      require('@tailwindcss/typography'),
-      function({ addUtilities, theme }: { addUtilities: any, theme: any }) {
-        const newUtilities = {
-          '.animation-delay-300': {
-            animationDelay: theme('animationDelay.300'),
-          },
-          '.animation-delay-500': {
-            animationDelay: theme('animationDelay.500'),
-          },
-           '.animation-delay-600': {
-            animationDelay: theme('animationDelay.600'),
-          },
-          '.animation-delay-900': {
-            animationDelay: theme('animationDelay.900'),
-          },
-          '.animation-delay-2000': {
-            animationDelay: theme('animationDelay.2000'),
-          },
-        }
-        addUtilities(newUtilities)
-      }
-    ],
+  plugins: [require('tailwindcss-animate')],
 } satisfies Config;
