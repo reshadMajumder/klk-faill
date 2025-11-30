@@ -1,18 +1,21 @@
-
 import type {NextConfig} from 'next';
 
-// Function to safely extract hostname from a URL
-const getHostnameFromUrl = (url: string | undefined) => {
-  if (!url) return null;
-  try {
-    const urlObject = new URL(url);
-    return urlObject.hostname;
-  } catch (error) {
-    return null;
-  }
-};
-
-const remotePatterns: NonNullable<NextConfig['images']>['remotePatterns'] = [
+const nextConfig: NextConfig = {
+  /* config options here */
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '8000',
+        pathname: '/**',
+      },
       {
         protocol: 'https',
         hostname: 'placehold.co',
@@ -31,36 +34,25 @@ const remotePatterns: NonNullable<NextConfig['images']>['remotePatterns'] = [
         port: '',
         pathname: '/**',
       },
-       // Allow images from the backend server
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
+      },
       {
         protocol: 'http',
-        hostname: '127.0.0.1',
-        port: '8000',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'klk-faill-2v6t.vercel.app',
+        port: '',
         pathname: '/**',
       }
-];
-
-const backendHostname = getHostnameFromUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
-
-if (backendHostname) {
-  remotePatterns.push({
-    protocol: 'https',
-    hostname: backendHostname,
-    port: '',
-    pathname: '/**',
-  });
-}
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  images: {
-    remotePatterns,
+    ],
   },
 };
 

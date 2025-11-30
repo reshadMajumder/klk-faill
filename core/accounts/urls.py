@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from .views import RegisterView,VerifyOtpView,LoginView,LogoutView,CircleRefreshToken,UserProfile
+from .views import RegisterView,VerifyOtpView,LoginView,LogoutView,CircleRefreshToken,UserProfile,GoogleLoginView
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register-user"),
     path("verify-otp/", VerifyOtpView.as_view(), name="verify-otp"),
@@ -8,6 +8,7 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="login-user"),
     path("refresh/", CircleRefreshToken.as_view(), name="login-user"),
     path("user-profile/", UserProfile.as_view(), name="login-user"),
+    path("google/", GoogleLoginView.as_view(), name="google-login"),
 
 
 ]

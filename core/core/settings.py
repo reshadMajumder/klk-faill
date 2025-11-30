@@ -228,6 +228,7 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
+    'http://localhost:9002',
 
 
 
@@ -248,3 +249,4 @@ cloudinary.config(
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
+GOOGLE_OAUTH_CLIENT_ID =os.getenv('GOOGLE_OAUTH_CLIENT_ID')

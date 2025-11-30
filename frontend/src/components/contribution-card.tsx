@@ -1,72 +1,101 @@
 
-import Link from 'next/link';
-import Image from 'next/image';
-import type { Contribution } from '@/lib/types';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { StarRating } from './star-rating';
-import { Button } from './ui/button';
-import { Pencil } from 'lucide-react';
+'use client';
+
+import Image from "next/image";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import type { ApiContribution } from "@/lib/data";
+import { getFullImageUrl } from "@/lib/data";
+import { Users, Star, Edit, BookOpen } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Button } from "./ui/button";
 
 type ContributionCardProps = {
-  contribution: Contribution;
-  showEditButton?: boolean;
+  contribution: ApiContribution;
+  className?: string;
   enrollmentId?: string;
+  showManagementActions?: boolean;
 };
 
-export function ContributionCard({ contribution, showEditButton = false, enrollmentId }: ContributionCardProps) {
-  // The API provides `ratings` as a string like "0.00".
-  const averageRating = parseFloat(contribution.ratings || '0');
+export function ContributionCard({ contribution, className, enrollmentId, showManagementActions = false }: ContributionCardProps) {
+  const initialImageUrl = getFullImageUrl(contribution.thumbnail_image);
+  const [imageUrl, setImageUrl] = useState(initialImageUrl);
+  const pathname = usePathname();
+  const router = useRouter();
 
-  // The new API doesn't link contributions to authors directly in the list view.
-  // We will display university info instead.
-  const universityName = contribution.related_University.name;
+  useEffect(() => {
+    setImageUrl(getFullImageUrl(contribution.thumbnail_image));
+  }, [contribution.thumbnail_image]);
+  
+  const imageHint = "education";
 
-  const cardLink = enrollmentId 
-    ? `/profile/enrollments/${enrollmentId}`
-    : `/contributions/${contribution.id}`;
+  const isEnrollmentsPage = pathname.includes('/dashboard');
+  const isMyContributionsPage = pathname.includes('/dashboard') && showManagementActions;
+  
+  const linkHref = isEnrollmentsPage && enrollmentId ? `/enrollments/${enrollmentId}` : `/contributions/${contribution.id}`;
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/dashboard/contributions/${contribution.id}/manage`);
+  };
 
   return (
-    <Card className="h-full flex flex-col transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 group">
-        <Link href={cardLink} className="flex flex-col flex-1">
-            <CardHeader className="p-0">
-            <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+    <div className={className}>
+      <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 group hover:shadow-lg">
+        <Link href={linkHref} className="flex flex-col flex-grow">
+          <CardHeader className="p-0 relative">
+            <div className="aspect-[4/3] overflow-hidden">
                 <Image
-                src={contribution.thumbnail_image || '/placeholder.svg'}
+                src={imageUrl}
                 alt={contribution.title}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                data-ai-hint="course thumbnail"
-                unoptimized // Use this if the image source is external and not configured in next.config.js
+                width={600}
+                height={400}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                data-ai-hint={imageHint}
+                onError={() => { setImageUrl('https://picsum.photos/seed/placeholder/600/400') }}
                 />
             </div>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col p-4">
-            <CardTitle className="font-headline text-lg leading-tight mb-2">
-                {contribution.title}
-            </CardTitle>
-            <p className="text-sm text-muted-foreground flex-1">{contribution.department.name}</p>
-            </CardContent>
-            <CardFooter className="p-4 pt-0 flex items-center justify-between text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold">{universityName}</span>
+             {contribution.course_code && (
+                <Badge variant="secondary" className="absolute top-3 left-3">{contribution.course_code}</Badge>
+            )}
+            <Badge className="absolute top-3 right-3">
+              {contribution.price === "0.00" ? "Free" : `$${contribution.price}`}
+            </Badge>
+          </CardHeader>
+          <CardContent className="p-4 flex-grow flex flex-col">
+            <h3 className="font-headline text-base font-semibold mb-2 leading-tight line-clamp-2 flex-grow">{contribution.title}</h3>
+            <div className="flex items-center gap-2 mt-2">
+              <BookOpen className="h-4 w-4 text-muted-foreground"/>
+              <span className="text-xs text-muted-foreground truncate">{contribution.related_University?.name || 'N/A'}</span>
             </div>
-            <div className="flex items-center gap-1">
-                <StarRating rating={averageRating} />
-                <span className="text-xs">({averageRating.toFixed(1)})</span>
-            </div>
-            </CardFooter>
+          </CardContent>
         </Link>
-        {showEditButton && (
-            <div className="p-4 pt-0 border-t mt-auto">
-                <Button asChild variant="outline" className="w-full">
-                    <Link href={`/contributions/${contribution.id}/edit`}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit Contribution
-                    </Link>
-                </Button>
+        <CardFooter className="p-4 pt-0 border-t mt-auto">
+          {isMyContributionsPage ? (
+            <div className="flex justify-end w-full gap-2">
+              <Button variant="outline" size="sm" onClick={handleEdit}>
+                <Edit className="h-4 w-4 mr-2" />
+                Manage
+              </Button>
             </div>
-        )}
-    </Card>
+          ) : (
+            <div className="flex justify-between items-center w-full text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                <span>{contribution.total_views}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
+                <span className="font-semibold text-foreground">{parseFloat(contribution.ratings).toFixed(1)}</span>
+              </div>
+            </div>
+          )}
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
+

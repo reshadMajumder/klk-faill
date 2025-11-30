@@ -180,3 +180,101 @@ class UserProfile(APIView):
 
 
 
+
+
+# ===============================
+# dirrect social login with Google
+# ===============================
+
+from google.oauth2 import id_token
+from google.auth.transport import requests
+import requests as http_requests
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import RefreshToken
+import random
+
+User = get_user_model()
+
+class GoogleLoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        token = request.data.get("token") or request.data.get("id_token")
+
+        if not token:
+            return Response({"error": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        google_user = None
+        try:
+            # Try as ID Token
+            google_user = id_token.verify_oauth2_token(
+                token,
+                requests.Request(),
+                settings.GOOGLE_OAUTH_CLIENT_ID
+            )
+        except ValueError:
+            # Try as Access Token
+            try:
+                resp = http_requests.get("https://www.googleapis.com/oauth2/v3/userinfo", params={"access_token": token})
+                if resp.status_code == 200:
+                    google_user = resp.json()
+            except Exception as e:
+                print(f"Google user info fetch failed: {e}")
+                pass
+
+        if not google_user:
+             return Response({"error": "Invalid Google token"}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = google_user.get("email")
+        name = google_user.get("name")
+        picture = google_user.get("picture")
+        sub = google_user.get("sub")  # Google unique ID
+
+        if not email:
+            return Response({"error": "Google account has no email"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if user exists or create new one
+        try:
+            user = User.objects.get(email=email)
+            created = False
+        except User.DoesNotExist:
+            # Extract first and last name
+            first_name = name.split(" ")[0] if name else ""
+            last_name = " ".join(name.split(" ")[1:]) if name else ""
+            
+            # Generate username using the same logic as manual registration
+            # Format: {first_name}_{random_2_digits}
+            rand_int = random.randint(10, 99)
+            base_username = f"{first_name.lower()}_{str(rand_int)}"
+            
+            # Ensure username is unique, if not add 4 digits
+            while User.objects.filter(username=base_username).exists():
+                rand_int = random.randint(1000, 9999)
+                base_username = f"{first_name.lower()}_{str(rand_int)}"
+            
+            user = User.objects.create(
+                email=email,
+                username=base_username,
+                first_name=first_name,
+                last_name=last_name,
+                is_email_verified=True,
+            )
+            created = True
+
+        # Update profile picture if available and not set
+        # Note: CloudinaryField handling might need specific logic if we want to upload the image
+        # For now, we just pass the picture URL in the response
+        
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
+
+        return Response({
+            "message": "Login successful",
+            "created": created,
+            "access": str(access),
+            "refresh": str(refresh),
+            
+            
+        }, status=status.HTTP_200_OK)
