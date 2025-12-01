@@ -24,7 +24,8 @@ export async function addVideoToContribution(id: string, data: { title: string; 
   if (data.video_file) {
     formData.append('video_file', data.video_file);
   } else if (data.video_url) {
-    formData.append('video_url', data.video_url);
+    // backend expects the field name `video_file` for both uploaded files and external URLs
+    formData.append('video_file', data.video_url);
   }
 
   return authFetch(`/api/contributions/${id}/videos/`, {

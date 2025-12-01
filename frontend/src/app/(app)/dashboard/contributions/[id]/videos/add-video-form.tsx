@@ -16,11 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  video_file: z.any().optional(),
-  video_url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
-}).refine(data => !!data.video_file || !!data.video_url, {
-    message: "Either a video file or a URL is required",
-    path: ["video_file"],
+  video_url: z.string().url('Must be a valid URL'),
 });
 
 
@@ -29,7 +25,7 @@ type AddVideoFormValues = z.infer<typeof formSchema>;
 export function AddVideoForm({ contributionId, onVideoAdded }: { contributionId: string; onVideoAdded: (video: any) => void }) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [uploadType, setUploadType] = useState<'file' | 'url'>('file');
+  // Only URL upload is allowed now
 
   const form = useForm<AddVideoFormValues>({
     resolver: zodResolver(formSchema),
@@ -42,21 +38,7 @@ export function AddVideoForm({ contributionId, onVideoAdded }: { contributionId:
   async function onSubmit(values: AddVideoFormValues) {
     setIsLoading(true);
 
-    const apiData: { title: string; video_file?: File; video_url?: string; } = { title: values.title };
-
-    if (uploadType === 'file' && values.video_file && values.video_file[0]) {
-      apiData.video_file = values.video_file[0];
-    } else if (uploadType === 'url' && values.video_url) {
-      apiData.video_url = values.video_url;
-    } else {
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'You must provide either a video file or a URL.'
-        });
-        setIsLoading(false);
-        return;
-    }
+    const apiData: { title: string; video_url?: string; } = { title: values.title, video_url: values.video_url };
     
     try {
       const newVideo = await addVideoToContribution(contributionId, apiData);
@@ -104,42 +86,19 @@ export function AddVideoForm({ contributionId, onVideoAdded }: { contributionId:
                         )}
                     />
                    
-                    <Tabs defaultValue="file" onValueChange={(value) => setUploadType(value as 'file' | 'url')}>
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="file">Upload File</TabsTrigger>
-                            <TabsTrigger value="url">Link URL</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="file" className="pt-4">
-                            <FormField
-                                control={form.control}
-                                name="video_file"
-                                render={({ field: { onChange, value, ...rest }}) => (
-                                    <FormItem>
-                                    <FormLabel>Video File</FormLabel>
-                                    <FormControl>
-                                        <Input type="file" accept="video/*" {...rest} onChange={(e) => onChange(e.target.files)} disabled={isLoading} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </TabsContent>
-                        <TabsContent value="url" className="pt-4">
-                             <FormField
-                                control={form.control}
-                                name="video_url"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Video URL</FormLabel>
-                                    <FormControl>
-                                    <Input placeholder="e.g., https://youtube.com/watch?v=..." {...field} disabled={isLoading} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                        </TabsContent>
-                    </Tabs>
+                    <FormField
+                      control={form.control}
+                      name="video_url"
+                      render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Video URL</FormLabel>
+                        <FormControl>
+                        <Input placeholder="e.g., https://youtube.com/watch?v=..." {...field} disabled={isLoading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                      )}
+                    />
                 </CardContent>
                 <CardFooter className="flex justify-end">
                     <Button type="submit" disabled={isLoading}>
