@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Star, PlayCircle, FileText, Clock, X, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ApiContributionDetail, getFullImageUrl } from '@/lib/data';
 import { formatDistanceToNow } from 'date-fns';
 import { authFetch } from "@/lib/auth";
@@ -32,6 +32,12 @@ type VideoDetail = {
     title: string;
     video_url: string;
     total_views: number;
+}
+
+type NoteDetail = {
+    note_id: string;
+    title: string;
+    note_url: string;
 }
 
 function getEmbedUrl(url: string): string | null {
@@ -71,6 +77,13 @@ export default function EnrollmentDetailPage() {
   const { toast } = useToast();
   const [commentCount, setCommentCount] = useState(0);
 
+  // new state to surface playback/fetch errors for the selected video
+  const [videoError, setVideoError] = useState<string | null>(null);
+  
+  // state for note viewing
+  const [selectedNote, setSelectedNote] = useState<NoteDetail | null>(null);
+  const [isNoteLoading, setIsNoteLoading] = useState(false);
+
   useEffect(() => {
     async function getEnrollment() {
       if (!id) return;
@@ -102,6 +115,7 @@ export default function EnrollmentDetailPage() {
     
     setIsVideoLoading(true);
     setSelectedVideo(null);
+    setVideoError(null);
     try {
         const videoData = await authFetch(`/api/enrollment/watch-video/${videoId}/`);
         setSelectedVideo(videoData);
@@ -116,31 +130,147 @@ export default function EnrollmentDetailPage() {
     }
   }
 
-  const renderVideoPlayer = (video: VideoDetail) => {
-    const embedUrl = getEmbedUrl(video.video_url);
+  const handleViewNote = async (noteId: string) => {
+    if (selectedNote?.note_id === noteId) {
+        setSelectedNote(null);
+        return;
+    }
+    
+    setIsNoteLoading(true);
+    setSelectedNote(null);
+    try {
+        const noteData = await authFetch(`/api/enrollment/get-notes/${noteId}/`);
+        setSelectedNote(noteData);
+    } catch (err: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Error loading note',
+            description: err.message || 'Could not load the note. Please try again.'
+        })
+    } finally {
+        setIsNoteLoading(false);
+    }
+  }
 
-    if (embedUrl) {
-        return (
-            <iframe
-                src={embedUrl}
-                className="w-full aspect-video rounded-lg"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={video.title}
-            ></iframe>
-        );
+  // Helper: extract YouTube ID (handles youtube.com/watch?v=.. and youtu.be/..)
+  function extractYouTubeId(url: string) {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtu.be')) {
+        return u.pathname.split('/').pop();
+      }
+      if (u.hostname.includes('youtube.com')) {
+        return u.searchParams.get('v') || null;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  // Helper: extract Google Drive file id
+  function extractDriveId(url: string) {
+    try {
+      const u = new URL(url);
+      // /file/d/<id>/...
+      const parts = u.pathname.split('/');
+      const fileIndex = parts.indexOf('d');
+      if (fileIndex !== -1 && parts[fileIndex + 1]) return parts[fileIndex + 1];
+      // ?id=<id>
+      const id = u.searchParams.get('id');
+      if (id) return id;
+    } catch (e) {}
+    return null;
+  }
+
+  // Accept many input shapes and return an embeddable URL or null
+  function getEmbedUrl(url?: string | null): string | null {
+    if (!url) return null;
+    // plain youtube id or url
+    const yt = extractYouTubeId(url);
+    if (yt) return `https://www.youtube.com/embed/${yt}`;
+
+    const driveId = extractDriveId(url);
+    if (driveId) return `https://drive.google.com/file/d/${driveId}/preview`;
+
+    // direct video file extensions
+    const lower = url.toLowerCase();
+    if (/\.(mp4|webm|ogg|mov)(\?.*)?$/.test(lower)) return url;
+
+    // some Google Drive share links that don't parse as URL (e.g., wrapped strings), try naive match
+    const matchDrive = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (matchDrive) return `https://drive.google.com/file/d/${matchDrive[1]}/preview`;
+
+    return null;
+  }
+
+  const renderVideoPlayer = (video: VideoDetail) => {
+    const embedUrl = getEmbedUrl(video.video_url ?? null);
+
+    // Build iframe src with safe autoplay params for YouTube (muted autoplay more likely to succeed)
+    let iframeSrc = embedUrl;
+    if (embedUrl && embedUrl.includes('youtube.com/embed')) {
+      // append autoplay and mute (do not break existing query params)
+      iframeSrc = embedUrl.includes('?') ? `${embedUrl}&autoplay=1&mute=1` : `${embedUrl}?autoplay=1&mute=1`;
     }
 
-    // Default to HTML5 video player for direct links
-    return (
-        <video 
-            controls 
-            autoPlay 
-            src={video.video_url} 
+    // iframe embed path (YouTube / Drive)
+    if (iframeSrc && (iframeSrc.includes('youtube.com/embed') || iframeSrc.includes('drive.google.com'))){
+      return (
+        <div>
+          <iframe
+            src={iframeSrc}
+            className="w-full aspect-video rounded-lg"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title={video.title}
+            onLoad={() => setVideoError(null)}
+            onError={() => setVideoError('Failed to load embedded player. You can open the video in a new tab.')}
+          />
+
+          <div className="mt-3 flex items-center gap-3">
+            <a className="underline text-sm" target="_blank" rel="noreferrer" href={video.video_url || iframeSrc}>Open in new tab</a>
+            <Button variant="secondary" size="sm" onClick={() => window.open(video.video_url || iframeSrc, '_blank')}>Open</Button>
+            {videoError && <span className="text-sm text-red-500">{videoError}</span>}
+          </div>
+        </div>
+      );
+    }
+
+    // direct video file path → use HTML5 player
+    if (embedUrl) {
+      return (
+        <div>
+          <video
+            controls
+            autoPlay
+            src={embedUrl}
             className="w-full aspect-video rounded-lg bg-black"
-        >
+            onError={() => setVideoError('Playback failed — the file may be blocked by CORS or inaccessible.')}
+          >
             Your browser does not support the video tag.
-        </video>
+          </video>
+
+          <div className="mt-3 flex items-center gap-3">
+            <a className="underline text-sm" target="_blank" rel="noreferrer" href={video.video_url || embedUrl}>Open in new tab</a>
+            <Button variant="secondary" size="sm" onClick={() => window.open(video.video_url || embedUrl, '_blank')}>Open</Button>
+            {videoError && <div className="text-sm text-red-500">{videoError}</div>}
+          </div>
+        </div>
+      );
+    }
+
+    // last resort: if no recognizable embed or direct file, show fallback with open link
+    return (
+      <div className="p-4 bg-gray-800 rounded-md text-white">
+        <p className="mb-2">Unable to embed this video automatically.</p>
+        {video.video_url ? (
+          <div className="flex items-center gap-3">
+            <a className="underline" target="_blank" rel="noreferrer" href={video.video_url}>Open the video in a new tab</a>
+            <Button variant="secondary" size="sm" onClick={() => window.open(video.video_url, '_blank')}>Open</Button>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">No video URL available.</p>
+        )}
+      </div>
     );
   }
 
@@ -249,6 +379,52 @@ export default function EnrollmentDetailPage() {
                 </Card>
             )}
 
+            <Dialog open={!!selectedNote || isNoteLoading} onOpenChange={(open) => !open && setSelectedNote(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{selectedNote?.title || 'Loading note...'}</DialogTitle>
+                        <DialogDescription>
+                            Access your study note
+                        </DialogDescription>
+                    </DialogHeader>
+                    {isNoteLoading && (
+                        <div className="w-full flex items-center justify-center p-8">
+                            <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                    )}
+                    {selectedNote && (
+                        <div className="space-y-4">
+                            <p className="text-sm text-muted-foreground">Click the link below to open the note:</p>
+                            <a 
+                                href={selectedNote.note_url} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="inline-flex items-center gap-2 text-primary hover:underline font-medium break-all"
+                            >
+                                <FileText className="h-4 w-4 flex-shrink-0" />
+                                {selectedNote.note_url}
+                            </a>
+                            <div className="flex gap-2">
+                                <Button 
+                                    variant="default" 
+                                    size="sm" 
+                                    onClick={() => window.open(selectedNote.note_url, '_blank')}
+                                >
+                                    Open Note
+                                </Button>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => setSelectedNote(null)}
+                                >
+                                    Close
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
             <Card>
                 <CardHeader>
                     <CardTitle>Course Content</CardTitle>
@@ -281,8 +457,15 @@ export default function EnrollmentDetailPage() {
                         <span className="text-sm font-medium text-muted-foreground">{index + 1}.</span>
                         <span className="flex-1 text-sm">{note.title}</span>
                         </div>
-                        <Button variant="secondary" size="sm" className="w-full sm:w-auto">
-                            View
+                        <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            onClick={() => handleViewNote(note.id)} 
+                            disabled={isNoteLoading && selectedNote?.note_id !== note.id}
+                            className="w-full sm:w-auto"
+                        >
+                            {selectedNote?.note_id === note.id ? <X className="h-4 w-4 mr-2"/> : <FileText className="h-4 w-4 mr-2"/>}
+                            {selectedNote?.note_id === note.id ? 'Close' : 'View'}
                         </Button>
                     </li>
                     ))}
@@ -307,4 +490,3 @@ export default function EnrollmentDetailPage() {
   );
 }
 
-    
