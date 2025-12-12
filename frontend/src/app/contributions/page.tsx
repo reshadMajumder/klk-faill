@@ -28,9 +28,10 @@ async function fetchContributions(query: string): Promise<ApiResponse> {
 export default async function ContributionsPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const sanitizedSearchParams = searchParams ? JSON.parse(JSON.stringify(searchParams)) : {};
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const sanitizedSearchParams = JSON.parse(JSON.stringify(resolvedSearchParams));
   const params = new URLSearchParams(sanitizedSearchParams as Record<string, string>);
 
   if (!params.has('page')) {
