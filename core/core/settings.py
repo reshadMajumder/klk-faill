@@ -184,13 +184,13 @@ REST_FRAMEWORK = {
         'register': '100/hour',  # Registration attempts: 3 per hour
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,
+    'PAGE_SIZE': 15,
 }
 
 
 from datetime import timedelta
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30000000),  # Reduced from 60 minutes
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  # Reduced from 60 minutes
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # Increased from 1 day
     'ROTATE_REFRESH_TOKENS': True,                   # Enable token rotation
     'BLACKLIST_AFTER_ROTATION': True,
@@ -216,12 +216,12 @@ SIMPLE_JWT = {
 
 
 # Only for development, configure properly for production
-CORS_ALLOW_ALL_ORIGINS = True  
-CORS_ALLOW_CREDENTIALS = True
+if DEBUG == False:
+    CORS_ALLOW_ALL_ORIGINS = True  
+    CORS_ALLOW_CREDENTIALS = True
 
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://spring.rexhad.co",
 ]
 
 
@@ -229,6 +229,9 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:9002',
+    'https://cglagbe.reshad.dev',
+    'https://cg-labe.vercel.app',
+
 
 
 
@@ -250,3 +253,22 @@ cloudinary.config(
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 GOOGLE_OAUTH_CLIENT_ID =os.getenv('GOOGLE_OAUTH_CLIENT_ID')
+
+
+
+
+
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = True  # only in production
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+if DEBUG:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
