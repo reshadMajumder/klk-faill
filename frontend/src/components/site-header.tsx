@@ -69,6 +69,13 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-4 sm:gap-6">
+          {isClient && isLoggedIn && (
+            <Button asChild>
+              <Link href="/dashboard/create-contribution">
+                Create
+              </Link>
+            </Button>
+          )}
           {isClient && (
             <Button variant="outline" asChild>
               <Link href="/contact?subject=sponsor">
@@ -134,6 +141,15 @@ export function SiteHeader() {
               })}
             </nav>
             <div className="mt-8 pt-8 border-t space-y-4">
+              {isClient && isLoggedIn && (
+                <SheetClose asChild>
+                  <Button asChild className="w-full">
+                    <Link href="/dashboard/create-contribution">
+                      Create Contribution
+                    </Link>
+                  </Button>
+                </SheetClose>
+              )}
               {isClient && (
                 <SheetClose asChild>
                   <Button variant="outline" asChild className="w-full">

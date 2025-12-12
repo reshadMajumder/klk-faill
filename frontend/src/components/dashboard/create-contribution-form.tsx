@@ -13,6 +13,7 @@ import { createContribution } from '@/lib/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { API_BASE_URL } from '@/lib/api';
 import { Switch } from '@/components/ui/switch';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 type Department = {
   id: string;
@@ -193,7 +194,12 @@ export function CreateContributionForm() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea id="description" value={formData.description} onChange={handleInputChange} placeholder="Provide a brief summary..." disabled={isLoading} />
+            <RichTextEditor 
+              content={formData.description} 
+              onChange={(html) => setFormData((prev) => ({ ...prev, description: html }))} 
+              placeholder="Provide a detailed description..."
+              disabled={isLoading}
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="thumbnail_image">Thumbnail Image</Label>

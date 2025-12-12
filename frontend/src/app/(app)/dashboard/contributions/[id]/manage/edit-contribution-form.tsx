@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { authFetch } from '@/lib/auth';
 import { ApiContributionDetail } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -223,7 +224,12 @@ export function EditContributionForm({ contributionId }: { contributionId: strin
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Provide a brief summary..." {...field} />
+                      <RichTextEditor 
+                        content={field.value} 
+                        onChange={field.onChange} 
+                        placeholder="Provide a detailed description..."
+                        disabled={isLoading}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
