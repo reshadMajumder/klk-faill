@@ -98,7 +98,7 @@ export default async function ContributionDetailPage({ params }: { params: { id:
                 <CardContent className="p-4 pt-0">
                 <h3 className="font-semibold mb-3 text-base flex items-center gap-2"><PlayCircle className="h-5 w-5 text-muted-foreground" /> Videos</h3>
                 <ul className="space-y-2 mb-6">
-                    {contribution.contributionVideos.map((video, index) => (
+                    {[...contribution.contributionVideos].reverse().map((video, index) => (
                     <li key={video.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
                         <div className="flex items-center gap-3">
                         <span className="text-sm font-medium text-muted-foreground">{index + 1}.</span>
