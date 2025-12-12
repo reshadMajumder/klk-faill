@@ -46,13 +46,12 @@ export default async function ContributionDetailPage({ params }: { params: { id:
   return (
     <div className="container mx-auto">
       <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-8">
+        <div className="md:col-span-2 space-y-6">
             <div>
                 {contribution.course_code && (
-                    <Badge variant="outline" className="mb-2 text-sm font-mono">{contribution.course_code}</Badge>
+                    <Badge variant="outline" className="mb-3 text-sm font-mono">{contribution.course_code}</Badge>
                 )}
-                <h1 className="font-headline text-3xl md:text-4xl font-bold mb-2">{contribution.title}</h1>
-                <p className="text-lg text-muted-foreground mb-6">{contribution.description}</p>
+                <h1 className="font-headline text-3xl md:text-4xl font-bold mb-4">{contribution.title}</h1>
                 
                 <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4 mb-6">
                     <div className="flex items-center gap-2">
@@ -79,6 +78,18 @@ export default async function ContributionDetailPage({ params }: { params: { id:
                     </div>
                 </div>
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Description</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div 
+                      className="prose prose-sm max-w-none" 
+                      dangerouslySetInnerHTML={{ __html: contribution.description }}
+                    />
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>

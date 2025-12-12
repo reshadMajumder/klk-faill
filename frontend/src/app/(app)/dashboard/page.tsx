@@ -96,50 +96,56 @@ export default function DashboardPage() {
       ) : (
         <PageHeader 
           title={`Welcome back, ${welcomeName}!`} 
-          description="Here's a quick overview of your account." 
+          description="Manage your contributions and enrollments in one place." 
         />
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              {stat.icon}
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {stat.value}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Stats Section */}
+      <div className="mb-12">
+        <h2 className="text-xl font-semibold mb-4">Your Activity</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {stats.map((stat) => (
+            <Card key={stat.title}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                {stat.icon}
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stat.value}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {dashboardLinks.map((link) => (
-          <Card key={link.href} className="h-full flex flex-col hover:border-primary transition-colors group">
-            <Link href={link.href} className="flex flex-col flex-grow">
-                <CardHeader>
-                    <div className="flex items-center gap-4">
+      {/* Quick Actions Section */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {dashboardLinks.map((link) => (
+            <Card key={link.href} className="hover:border-primary transition-all hover:shadow-lg group">
+              <CardHeader>
+                  <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
                         {link.icon}
-                        <CardTitle className="text-lg font-semibold">{link.title}</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                    <p className="text-sm text-muted-foreground">{link.description}</p>
-                </CardContent>
-                 <CardFooter className="pt-0">
-                    <Button asChild variant="outline" className="w-full justify-start group-hover:bg-primary group-hover:text-primary-foreground">
-                        <Link href={link.href}>
-                            Go to section
-                            <ArrowRight className="h-4 w-4 ml-auto" />
-                        </Link>
-                    </Button>
-                </CardFooter>
-            </Link>
-          </Card>
-        ))}
+                      </div>
+                  </div>
+                  <CardTitle className="text-lg font-semibold">{link.title}</CardTitle>
+                  <CardDescription className="text-sm">{link.description}</CardDescription>
+              </CardHeader>
+               <CardFooter>
+                  <Button asChild variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      <Link href={link.href}>
+                          {link.title === "My Enrollments" ? "View Enrollments" : link.title === "My Contributions" ? "Manage Contributions" : "Create Now"}
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                      </Link>
+                  </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
