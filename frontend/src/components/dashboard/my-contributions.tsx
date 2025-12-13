@@ -40,6 +40,29 @@ export function MyContributions() {
     fetchMyContributions();
   }, [toast]);
 
+  const handleDelete = async (contributionId: string) => {
+    try {
+      await authFetch(`/api/contributions/${contributionId}/delete/`, {
+        method: 'DELETE',
+      });
+      
+      // Optimistically update UI
+      setContributions((prev) => prev.filter((c) => c.id !== contributionId));
+      
+      toast({
+        title: 'Success',
+        description: 'Contribution deleted successfully',
+      });
+    } catch (error: any) {
+      console.error('Failed to delete contribution', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Could not delete contribution.',
+      });
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -60,7 +83,7 @@ export function MyContributions() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {contributions.length > 0 ? (
             contributions.map((contribution) => (
-            <ContributionCard key={contribution.id} contribution={contribution} showManagementActions={true} />
+            <ContributionCard key={contribution.id} contribution={contribution} showManagementActions={true} onDelete={handleDelete} />
             ))
         ) : (
             <div className="col-span-full text-center py-12">

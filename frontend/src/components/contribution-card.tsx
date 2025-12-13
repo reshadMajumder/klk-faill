@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import type { ApiContribution } from "@/lib/data";
 import { getFullImageUrl } from "@/lib/data";
-import { Users, Star, Edit, BookOpen } from "lucide-react";
+import { Users, Star, Edit, BookOpen, Trash2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 
@@ -17,9 +17,10 @@ type ContributionCardProps = {
   className?: string;
   enrollmentId?: string;
   showManagementActions?: boolean;
+  onDelete?: (contributionId: string) => void;
 };
 
-export function ContributionCard({ contribution, className, enrollmentId, showManagementActions = false }: ContributionCardProps) {
+export function ContributionCard({ contribution, className, enrollmentId, showManagementActions = false, onDelete }: ContributionCardProps) {
   const initialImageUrl = getFullImageUrl(contribution.thumbnail_image);
   const [imageUrl, setImageUrl] = useState(initialImageUrl);
   const pathname = usePathname();
@@ -40,6 +41,14 @@ export function ContributionCard({ contribution, className, enrollmentId, showMa
     e.preventDefault();
     e.stopPropagation();
     router.push(`/dashboard/contributions/${contribution.id}/manage`);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this contribution? This action cannot be undone.')) {
+      onDelete?.(contribution.id);
+    }
   };
 
   return (
@@ -79,6 +88,10 @@ export function ContributionCard({ contribution, className, enrollmentId, showMa
               <Button variant="outline" size="sm" onClick={handleEdit}>
                 <Edit className="h-4 w-4 mr-2" />
                 Manage
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleDelete}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
               </Button>
             </div>
           ) : (
