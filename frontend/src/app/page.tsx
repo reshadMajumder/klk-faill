@@ -16,16 +16,19 @@ export default function LandingPage() {
       icon: <BookCopy className="w-8 h-8 text-primary" />,
       title: 'Resource Library',
       description: 'Access a vast library of study materials, notes, and resources shared by fellow students.',
+      href: '/contributions',
     },
     {
       icon: <Share2 className="w-8 h-8 text-primary" />,
       title: 'Share & Showcase',
       description: 'Share your own study materials to help others and showcase your teaching ability to the community.',
+      href: '/dashboard',
     },
     {
       icon: <Target className="w-8 h-8 text-primary" />,
       title: 'Last-Night Prep Tools',
       description: 'Find concise notes and key resources perfect for last-minute exam preparation and revision.',
+      href: '/contributions',
     },
   ];
 
@@ -103,7 +106,7 @@ export default function LandingPage() {
             </div>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none mt-12">
               {features.map((feature) => (
-                <div key={feature.title} className="grid gap-4 p-6 rounded-lg bg-card shadow-sm transition-all hover:shadow-lg hover:-translate-y-1">
+                <Link key={feature.title} href={feature.href} className="grid gap-4 p-6 rounded-lg bg-card shadow-sm transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer">
                   {feature.icon}
                   <div className="grid gap-1">
                     <h3 className="font-headline text-xl font-bold">{feature.title}</h3>
@@ -111,7 +114,7 @@ export default function LandingPage() {
                       {feature.description}
                     </p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -136,7 +139,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32">
+        {/* <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="mx-auto max-w-4xl text-center bg-card border rounded-2xl p-8 md:p-12 lg:p-16 relative overflow-hidden">
                 <div className="relative">
@@ -156,7 +159,7 @@ export default function LandingPage() {
                 </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
