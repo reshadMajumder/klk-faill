@@ -131,11 +131,12 @@ export default function LoginPage() {
           Welcome Back
         </h1>
         <p className="text-sm text-muted-foreground">
-          Enter your details to access your account
+          {/* Enter your details to access your account */}
+          click below to login with your google account, its fast and secure and hastle free.
         </p>
       </div>
       <div className="grid gap-6">
-        <Form {...form}>
+        {/* <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
             <FormField
               control={form.control}
@@ -179,15 +180,17 @@ export default function LoginPage() {
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Login
             </Button>
+            
           </form>
-        </Form>
+        </Form> */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">
-              Or continue with
+              {/* Or continue with */}
+              To continue, use social login options below
             </span>
           </div>
         </div>
