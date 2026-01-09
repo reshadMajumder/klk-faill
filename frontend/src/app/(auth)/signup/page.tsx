@@ -187,12 +187,16 @@ export default function SignupPage() {
         <h1 className="text-2xl font-semibold tracking-tight font-headline">
           Create an account
         </h1>
-        <p className="text-sm text-muted-foreground">
+        {/* <p className="text-sm text-muted-foreground">
           Enter your details below to start your learning journey
+        </p> */}
+
+        <p className="text-sm text-muted-foreground">
+          Sign up with Google to access a world of knowledge and connect with fellow learners.
         </p>
       </div>
       <div className="grid gap-6">
-        <Form {...form}>
+        {/* <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -286,13 +290,16 @@ export default function SignupPage() {
             </Button>
           </form>
         </Form>
+         */}
+         
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">
-              Or continue with
+              {/* Or continue with */}
+              To continue, use social login options below 
             </span>
           </div>
         </div>
